@@ -49,7 +49,7 @@
   h1{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size: clamp(28px, 4vw, 38px); margin:0; color: var(--chili-deep); letter-spacing: -0.5px; }
   .tagline{ margin:2px 0 0; color: var(--ink-soft); font-size: 15px; }
 
-  .header-widgets{ display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+  .header-widgets{ display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex: 0 0 auto; margin-left:auto; }
   .visitor-badge{
     font-size:12px; font-weight:700; color: var(--ink-soft);
     background: var(--steel); border:1px solid var(--rule);
@@ -100,7 +100,9 @@
   @media print{ .food-banner, .header-widgets{ display:none; } }
 
   .setup{ background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 26px; box-shadow: 0 2px 0 var(--rule); }
-  .setup-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 16px; align-items:end; }
+  .setup-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px 22px; align-items:end; }
+  @media (max-width: 780px){ .setup-grid{ grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px){ .setup-grid{ grid-template-columns: 1fr; } }
   .field label{ display:block; font-family:'Baloo 2', sans-serif; font-weight:600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--chili-deep); margin-bottom: 6px; }
   .stepper{ display:flex; align-items:center; border: 1.5px solid var(--rule); border-radius: 10px; overflow:hidden; background: var(--steel); width: fit-content; }
   .stepper button{ width: 38px; height: 38px; border:none; background: transparent; font-size: 18px; font-weight:700; color: var(--chili-deep); cursor:pointer; }
@@ -111,6 +113,13 @@
   .chip{ padding: 7px 12px; border-radius: 999px; border: 1.5px solid var(--rule); background: var(--steel); font-size: 13px; font-weight:600; cursor:pointer; user-select:none; color: var(--ink-soft); }
   .chip.on{ background: var(--cardamom); border-color: var(--cardamom); color: white; }
   .generate-row{ display:flex; justify-content:flex-end; margin-top:18px; }
+  .special-toggle-row{ margin-top:16px; padding-top:14px; border-top: 1px dashed var(--rule); }
+  .special-toggle{ display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:600; color: var(--ink); cursor:pointer; }
+  .special-toggle input{ width:17px; height:17px; accent-color: var(--chili); cursor:pointer; }
+  .special-badge{ font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:.03em; }
+  .special-badge.festival{ background:#FBE3C6; color:#8A4B12; }
+  .special-badge.fasting{ background: var(--cardamom-soft); color:#3E5636; }
+  .special-badge.treat{ background:#FDE0E0; color: var(--chili-deep); }
   .btn-primary{ background: var(--chili); color: white; border:none; font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 15px; padding: 12px 26px; border-radius: 10px; cursor:pointer; box-shadow: 0 3px 0 var(--chili-deep); transition: transform .05s; }
   .btn-primary:active{ transform: translateY(2px); box-shadow: 0 1px 0 var(--chili-deep); }
   .btn-primary:hover{ background:#B8392C; }
@@ -228,11 +237,19 @@
   <div class="setup">
     <div class="setup-grid">
       <div class="field">
-        <label for="members">Family members</label>
+        <label for="adults">Adults</label>
         <div class="stepper">
-          <button type="button" id="minus">−</button>
-          <input type="text" id="members" value="4" readonly>
-          <button type="button" id="plus">+</button>
+          <button type="button" id="adultsMinus">−</button>
+          <input type="text" id="adults" value="3" readonly>
+          <button type="button" id="adultsPlus">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="kids">Kids (below 15)</label>
+        <div class="stepper">
+          <button type="button" id="kidsMinus">−</button>
+          <input type="text" id="kids" value="1" readonly>
+          <button type="button" id="kidsPlus">+</button>
         </div>
       </div>
       <div class="field">
@@ -248,7 +265,7 @@
           <option value="any" selected>Mixed / any region</option>
           <option value="north">North Indian</option>
           <option value="south">South Indian</option>
-          <option value="west">West Indian</option>
+          <option value="west">Maharashtrian / West Indian</option>
           <option value="east">East Indian</option>
         </select>
       </div>
@@ -269,6 +286,12 @@
           <option value="bigLunch">Heavy lunch · Light dinner</option>
         </select>
       </div>
+    </div>
+    <div class="special-toggle-row">
+      <label class="special-toggle">
+        <input type="checkbox" id="funSpecials">
+        <span>🎉 Add weekend &amp; festival specials — pizza, vada pav, pani puri, misal, pav bhaji…</span>
+      </label>
     </div>
     <div class="generate-row">
       <button class="btn-primary" id="generateBtn">Generate the week's plan</button>
@@ -302,7 +325,7 @@ const DB = {
     {name:"Aloo Paratha with Curd", desc:"Stuffed potato flatbread, served with fresh curd & pickle.", veg:true, region:"north", ing:["Wheat flour","Potato","Green chilli","Curd","Pickle"], cal:320, protein:8},
     {name:"Besan Chilla", desc:"Savoury gram-flour pancakes with onion, tomato & spices.", veg:true, region:"north", ing:["Gram flour (besan)","Onion","Tomato","Green chilli","Ajwain"], cal:200, protein:9},
     {name:"Plain Dosa with Chutney", desc:"Crisp fermented rice-lentil crepe with coconut chutney.", veg:true, region:"south", ing:["Dosa batter (rice-urad)","Coconut","Green chilli","Roasted chana dal"], cal:210, protein:5},
-    {name:"Sabudana Khichdi", desc:"Tapioca pearls with peanuts, potato & curry leaves.", veg:true, region:"west", ing:["Sabudana","Peanuts","Potato","Curry leaves","Cumin"], cal:300, protein:5},
+    {name:"Sabudana Khichdi", desc:"Tapioca pearls with peanuts, potato & curry leaves.", veg:true, region:"west", ing:["Sabudana","Peanuts","Potato","Curry leaves","Cumin"], cal:300, protein:5, fast:true},
     {name:"Vegetable Daliya", desc:"Broken wheat porridge cooked with mixed vegetables.", veg:true, region:"north", ing:["Broken wheat (daliya)","Mixed vegetables","Onion","Cumin"], cal:220, protein:7},
     {name:"Moong Dal Chilla", desc:"Protein-rich lentil pancakes, light and easy on the stomach.", veg:true, region:"north", ing:["Split moong dal","Ginger","Green chilli","Onion"], cal:180, protein:10},
     {name:"Masala Oats", desc:"Oats tempered with mustard seeds, onion & vegetables.", veg:true, region:"any", ing:["Oats","Mixed vegetables","Onion","Mustard seeds"], cal:200, protein:7},
@@ -312,6 +335,9 @@ const DB = {
     {name:"Idiyappam with Coconut Milk", desc:"Steamed rice noodles served with sweetened coconut milk.", veg:true, region:"south", ing:["Rice flour","Coconut milk","Cardamom","Jaggery (optional)"], cal:260, protein:5},
     {name:"Vegetable Uttapam", desc:"Thick savoury rice pancake topped with onion & tomato.", veg:true, region:"south", ing:["Dosa batter","Onion","Tomato","Coriander"], cal:230, protein:6},
     {name:"Stuffed Methi Paratha", desc:"Fenugreek leaf flatbread, served with curd.", veg:true, region:"north", ing:["Wheat flour","Fenugreek leaves","Curd","Carom seeds"], cal:300, protein:7},
+    {name:"Thalipeeth with Curd & Butter", desc:"Maharashtrian multigrain savoury pancake, a home-style classic.", veg:true, region:"west", ing:["Bhajani (multigrain flour)","Onion","Curd","Butter"], cal:280, protein:8},
+    {name:"Sabudana Wada", desc:"Crisp fried tapioca-peanut fritters, a favourite fasting-day breakfast.", veg:true, region:"west", ing:["Sabudana","Peanuts","Potato","Green chilli"], cal:260, protein:5, fast:true},
+    {name:"Rajgira Paratha with Curd", desc:"Amaranth-flour flatbread, commonly eaten on fasting days.", veg:true, region:"west", ing:["Rajgira (amaranth) flour","Potato","Curd"], cal:270, protein:6, fast:true},
   ],
   tiffin: [
     {name:"Vegetable Paratha Roll", desc:"Mixed-veg stuffed paratha rolled up, easy to eat cold.", veg:true, region:"north", ing:["Wheat flour","Mixed vegetables","Ginger","Spices"], cal:280, protein:6},
@@ -350,6 +376,9 @@ const DB = {
     {name:"Mutton Curry with Rice", desc:"Slow-cooked mutton curry, a weekend indulgence.", veg:false, region:"any", ing:["Mutton","Onion","Tomato","Whole spices","Rice"], cal:550, protein:28},
     {name:"Aloo Gobi with Dal & Roti", desc:"Classic potato-cauliflower dry sabzi with lentils.", veg:true, region:"north", ing:["Potato","Cauliflower","Toor dal","Wheat flour"], cal:400, protein:12},
     {name:"Prawn Curry with Rice", desc:"Coconut-based coastal prawn curry.", veg:false, region:"south", ing:["Prawns","Coconut","Curry leaves","Rice"], cal:440, protein:24},
+    {name:"Varan Bhaat with Tup & Papad", desc:"Maharashtrian everyday dal-rice with a spoon of ghee and crisp papad.", veg:true, region:"west", ing:["Toor dal","Rice","Ghee","Papad"], cal:400, protein:12},
+    {name:"Pithla Bhakri", desc:"Spiced gram-flour curry with jowar or bajra flatbread — a Maharashtrian staple.", veg:true, region:"west", ing:["Gram flour (besan)","Jowar/bajra flour","Onion","Garlic"], cal:380, protein:12},
+    {name:"Zunka Bhakri with Salad", desc:"Dry spiced gram-flour crumble served with bhakri and raw onion.", veg:true, region:"west", ing:["Gram flour (besan)","Jowar/bajra flour","Onion","Green chilli"], cal:360, protein:11},
   ],
   dinner: [
     {name:"Khichdi with Kadhi", desc:"Light rice-lentil khichdi with tangy yogurt curry — easy on digestion.", veg:true, region:"any", ing:["Rice","Moong dal","Curd","Gram flour"], cal:320, protein:10},
@@ -367,6 +396,8 @@ const DB = {
     {name:"Dal Palak with Rice", desc:"Spinach-lentil curry, nutritious and light.", veg:true, region:"north", ing:["Toor dal","Spinach","Rice"], cal:360, protein:13},
     {name:"Stuffed Capsicum with Roti", desc:"Bell peppers stuffed with a spiced potato filling.", veg:true, region:"north", ing:["Capsicum","Potato","Spices","Wheat flour"], cal:340, protein:9},
     {name:"Paneer Tikka with Roti", desc:"Grilled spiced paneer, a lighter tandoor-style dinner.", veg:true, region:"north", ing:["Paneer","Curd","Tikka masala","Wheat flour"], cal:380, protein:16},
+    {name:"Varan Bhaat with Tup", desc:"Light everyday Maharashtrian dal-rice finished with a spoon of ghee.", veg:true, region:"west", ing:["Toor dal","Rice","Ghee"], cal:340, protein:11},
+    {name:"Thalipeeth with Curd", desc:"Multigrain savoury pancake, a light and filling dinner option.", veg:true, region:"west", ing:["Bhajani (multigrain flour)","Onion","Curd"], cal:300, protein:8},
   ]
 };
 
@@ -376,6 +407,42 @@ const MEAL_META = {
   lunch: {label:"Lunch", icon:"🍛"},
   dinner: {label:"Dinner", icon:"🌙"}
 };
+
+/* ---------------- Weekend & festival "treat" pool ----------------
+   Only surfaces when the "Add weekend & festival specials" checkbox is on,
+   and only on Saturdays/Sundays or days already flagged with a festival/holiday
+   tag — never on a fasting day. Applied to one slot (dinner, or lunch if
+   dinner isn't being planned) per qualifying day. */
+const TREATS = {
+  lunch: [
+    {name:"Pani Puri", desc:"Crisp hollow puris with spiced tamarind water — a Mumbai street-food classic.", veg:true, region:"west", ing:["Puri shells","Tamarind water","Boiled potato","Sprouts"], cal:280, protein:6},
+    {name:"Bhel Puri", desc:"Puffed rice tossed with chutneys, onion, and crunchy sev.", veg:true, region:"west", ing:["Puffed rice","Sev","Onion","Tamarind chutney"], cal:260, protein:5},
+    {name:"Sev Puri", desc:"Crisp puris topped with potato, chutneys, onion & sev.", veg:true, region:"west", ing:["Puri shells","Potato","Chutneys","Sev"], cal:270, protein:5},
+    {name:"Vada Pav", desc:"Mumbai's favourite — spiced potato fritter in a soft pav with chutneys.", veg:true, region:"west", ing:["Potato","Gram flour (besan)","Pav (bread roll)","Garlic chutney"], cal:340, protein:8},
+    {name:"Ragda Pattice", desc:"Shallow-fried potato patties served over spiced white-pea curry.", veg:true, region:"west", ing:["Potato patties","White peas (ragda)","Chutneys","Onion"], cal:360, protein:10},
+    {name:"Kolhapuri Misal Pav", desc:"Spicy sprouted-moth-bean curry topped with farsan, served with pav.", veg:true, region:"west", ing:["Mixed sprouts","Misal masala","Pav (bread roll)","Farsan"], cal:460, protein:16},
+  ],
+  dinner: [
+    {name:"Homemade Cheese Pizza", desc:"Weekend-treat pizza with tomato base, cheese & veggie toppings.", veg:true, region:"any", ing:["Pizza base","Cheese","Tomato sauce","Mixed vegetables"], cal:480, protein:16},
+    {name:"Cheesy Veg Pasta", desc:"Kid-favourite pasta in a creamy or tomato sauce with vegetables.", veg:true, region:"any", ing:["Pasta","Cheese","Mixed vegetables","Tomato/white sauce"], cal:460, protein:14},
+    {name:"Maggi Noodles with Veggies", desc:"Quick masala noodles loaded with vegetables — always a hit with kids.", veg:true, region:"any", ing:["Instant noodles","Mixed vegetables","Masala"], cal:380, protein:9},
+    {name:"Veg / Cheese Burger", desc:"Pan-grilled patty burger with cheese, lettuce & sauces.", veg:true, region:"any", ing:["Burger bun","Veg/cheese patty","Lettuce","Sauces"], cal:450, protein:13},
+    {name:"Mumbai Pav Bhaji", desc:"Buttery mashed mixed-vegetable curry served with toasted pav.", veg:true, region:"west", ing:["Mixed vegetables","Pav bhaji masala","Butter","Pav (bread roll)"], cal:480, protein:11},
+    {name:"Mumbai Frankie Roll", desc:"Spiced potato or paneer filling rolled in a soft paratha wrap.", veg:true, region:"west", ing:["Paratha wrap","Paneer/potato filling","Onion","Chutney"], cal:420, protein:12},
+  ]
+};
+
+/* ---------------- Festival-special overrides ----------------
+   When a plan day carries one of these festival tags, its dinner (or lunch,
+   if dinner isn't being planned) is swapped for the matching seasonal dish. */
+const FESTIVAL_SPECIALS = {
+  "Ganesh Chaturthi": {name:"Ukadiche Modak", desc:"Steamed rice-flour dumplings filled with jaggery & coconut — the Ganpati festive special.", veg:true, region:"west", ing:["Rice flour","Jaggery","Fresh coconut","Cardamom"], cal:320, protein:4},
+  "Holi": {name:"Puran Poli", desc:"Sweet flatbread stuffed with a jaggery-chana dal filling, a Holi & Gudi Padwa favourite.", veg:true, region:"west", ing:["Chana dal","Jaggery","Wheat flour","Ghee"], cal:380, protein:8},
+  "Gudi Padwa": {name:"Puran Poli with Katachi Amti", desc:"Sweet jaggery-dal stuffed flatbread served with a tangy dal broth — the Gudi Padwa spread.", veg:true, region:"west", ing:["Chana dal","Jaggery","Wheat flour","Katachi amti"], cal:420, protein:10},
+  "Makar Sankranti": {name:"Til-Gul Ladoo with Khichdi", desc:"Sesame-jaggery sweets alongside the traditional Sankranti khichdi.", veg:true, region:"west", ing:["Sesame seeds (til)","Jaggery (gul)","Rice","Moong dal"], cal:400, protein:9},
+  "Diwali": {name:"Diwali Faral Platter", desc:"An assorted plate of chivda, chakli & ladoo — the classic Diwali spread.", veg:true, region:"west", ing:["Poha (chivda)","Besan (chakli)","Jaggery/sugar (ladoo)"], cal:420, protein:7},
+};
+const FASTING_KEYWORDS = ["Ekadashi","Chaturthi","Purnima","Amavasya"];
 
 /* Portion multipliers by eating pattern — adjusts displayed calorie/protein estimate
    and a portion-size tip per meal. Dish choice itself doesn't change. */
@@ -481,6 +548,57 @@ function pickOne(mealType, avoidName){
 function recipeLink(name){
   return "https://www.google.com/search?q=" + encodeURIComponent(name + " recipe");
 }
+function filteredTreatPool(mealType){
+  const diet = document.getElementById('diet').value;
+  const list = TREATS[mealType] || [];
+  return list.filter(r => diet === 'veg' ? r.veg : true);
+}
+function fastPool(mealType){
+  return filteredPool(mealType).filter(r => r.fast);
+}
+
+/* Applies festival specials, fasting-day picks, and (if enabled) weekend/festival
+   treats to the appropriate day/slot in currentPlan. Runs once right after the
+   week is generated; each slot can still be shuffled by hand afterwards. */
+function applyDayOverrides(){
+  const funOn = document.getElementById('funSpecials').checked;
+  // preferred meal slot to override, in order of what's actually active
+  const overrideMeal = activeMeals.includes('dinner') ? 'dinner' : (activeMeals.includes('lunch') ? 'lunch' : null);
+  if(!overrideMeal) return;
+
+  planDates.forEach((d, dayIdx)=>{
+    const key = fmtKey(d);
+    const tag = EVENTS[key] || "";
+    const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+
+    // 1. Festival special takes top priority
+    const festivalHit = Object.keys(FESTIVAL_SPECIALS).find(k => tag.includes(k));
+    if(festivalHit){
+      currentPlan[overrideMeal][dayIdx] = Object.assign({}, FESTIVAL_SPECIALS[festivalHit], {badge:'festival'});
+      return;
+    }
+
+    // 2. Fasting-day pick — never overridden by treats
+    const isFastingDay = FASTING_KEYWORDS.some(k => tag.includes(k));
+    if(isFastingDay){
+      const pool = fastPool(overrideMeal).length ? fastPool(overrideMeal) : fastPool('breakfast');
+      if(pool.length){
+        const pick = pool[Math.floor(Math.random()*pool.length)];
+        currentPlan[overrideMeal][dayIdx] = Object.assign({}, pick, {badge:'fasting'});
+      }
+      return;
+    }
+
+    // 3. Weekend/festival treat, only if the checkbox is on
+    if(funOn && (isWeekend || tag)){
+      const pool = filteredTreatPool(overrideMeal);
+      if(pool.length){
+        const pick = pool[Math.floor(Math.random()*pool.length)];
+        currentPlan[overrideMeal][dayIdx] = Object.assign({}, pick, {badge:'treat'});
+      }
+    }
+  });
+}
 
 /* ---------------- Rendering ---------------- */
 function render(){
@@ -495,11 +613,13 @@ function render(){
   }
   footer.style.display = 'flex';
   legend.style.display = 'block';
-  const members = document.getElementById('members').value;
+  const adults = document.getElementById('adults').value;
+  const kids = document.getElementById('kids').value;
+  const servingText = parseInt(kids,10) > 0 ? `~${adults} adults + ${kids} kid${kids==1?'':'s'}` : `~${adults} adults`;
 
   let html = `<div id="planContent"><div class="plan-head">
       <h2>Your next 7 days</h2>
-      <div class="note">Serving size: ~${members} people per meal · ${document.getElementById('pattern').selectedOptions[0].text} · tap ↻ to swap a dish</div>
+      <div class="note">Serving size: ${servingText} per meal · ${document.getElementById('pattern').selectedOptions[0].text} · tap ↻ to swap a dish</div>
     </div>`;
 
   planDates.forEach((d, dayIdx)=>{
@@ -527,11 +647,13 @@ function render(){
       const dispCal = Math.round(recipe.cal * mult);
       const dispProtein = Math.round(recipe.protein * mult);
       dayCal += dispCal;
+      const badgeMap = {festival:'🎊 Festival special', fasting:'🙏 Fasting-friendly', treat:'🎉 Weekend treat'};
+      const badgeHtml = recipe.badge ? `<span class="special-badge ${recipe.badge}">${badgeMap[recipe.badge]}</span>` : '';
       html += `
         <div class="meal-row">
           <div class="meal-label"><span class="meal-icon">${meta.icon}</span><span class="txt">${meta.label}</span></div>
           <div class="meal-content">
-            <p class="recipe-name">${recipe.name}</p>
+            <p class="recipe-name">${recipe.name} ${badgeHtml}</p>
             <p class="recipe-desc">${recipe.desc}</p>
             <p class="recipe-ingredients"><b>Main ingredients:</b> ${recipe.ing.join(', ')}</p>
             <div class="recipe-meta-row">
@@ -590,6 +712,7 @@ function generatePlan(){
   buildDates();
   currentPlan = {};
   activeMeals.forEach(mealType=>{ currentPlan[mealType] = pickWeek(mealType); });
+  applyDayOverrides();
   dayNotes = {};
   render();
 }
@@ -606,9 +729,11 @@ function showToast(msg){
 
 /* ---------------- Export helpers ---------------- */
 function planAsText(){
-  const members = document.getElementById('members').value;
+  const adults = document.getElementById('adults').value;
+  const kids = document.getElementById('kids').value;
+  const servingText = parseInt(kids,10) > 0 ? `~${adults} adults + ${kids} kid${kids==1?'':'s'}` : `~${adults} adults`;
   const pattern = PATTERNS[document.getElementById('pattern').value];
-  let lines = [`🍛 *Weekly Meal Plan* (for ~${members} people · ${document.getElementById('pattern').selectedOptions[0].text})\n`];
+  let lines = [`🍛 *Weekly Meal Plan* (for ${servingText} · ${document.getElementById('pattern').selectedOptions[0].text})\n`];
   planDates.forEach((d, dayIdx)=>{
     const key = fmtKey(d);
     const tag = EVENTS[key] ? `  [${EVENTS[key]}]` : '';
@@ -650,14 +775,24 @@ document.getElementById('pdfBtn').addEventListener('click', ()=>{
 });
 
 /* ---------------- Controls ---------------- */
-document.getElementById('minus').addEventListener('click', ()=>{
-  const input = document.getElementById('members');
+document.getElementById('adultsMinus').addEventListener('click', ()=>{
+  const input = document.getElementById('adults');
   input.value = Math.max(1, parseInt(input.value,10)-1);
   if(Object.keys(currentPlan).length) render();
 });
-document.getElementById('plus').addEventListener('click', ()=>{
-  const input = document.getElementById('members');
+document.getElementById('adultsPlus').addEventListener('click', ()=>{
+  const input = document.getElementById('adults');
   input.value = Math.min(15, parseInt(input.value,10)+1);
+  if(Object.keys(currentPlan).length) render();
+});
+document.getElementById('kidsMinus').addEventListener('click', ()=>{
+  const input = document.getElementById('kids');
+  input.value = Math.max(0, parseInt(input.value,10)-1);
+  if(Object.keys(currentPlan).length) render();
+});
+document.getElementById('kidsPlus').addEventListener('click', ()=>{
+  const input = document.getElementById('kids');
+  input.value = Math.min(10, parseInt(input.value,10)+1);
   if(Object.keys(currentPlan).length) render();
 });
 document.querySelectorAll('.chip').forEach(chip=>{
@@ -666,6 +801,9 @@ document.querySelectorAll('.chip').forEach(chip=>{
 document.getElementById('generateBtn').addEventListener('click', generatePlan);
 document.getElementById('pattern').addEventListener('change', ()=>{
   if(Object.keys(currentPlan).length) render();
+});
+document.getElementById('funSpecials').addEventListener('change', ()=>{
+  if(Object.keys(currentPlan).length) generatePlan();
 });
 
 /* ---------------- Scrolling food banner ---------------- */
