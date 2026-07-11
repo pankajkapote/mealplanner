@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aaj Kya Banaye — Weekly Meal Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root{
+    --wheat: #F1E8D6;
+    --wheat-deep: #E7DABF;
+    --card: #FFFDF8;
+    --ink: #2E2118;
+    --ink-soft: #6B5D4F;
+    --chili: #A93226;
+    --chili-deep: #7E241B;
+    --turmeric: #C9862E;
+    --turmeric-soft: #F0D9AE;
+    --cardamom: #5C7A52;
+    --cardamom-soft: #DCE5D1;
+    --steel: #ECEAE2;
+    --rule: #D8CBAE;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--wheat);
+    background-image: radial-gradient(circle at 1px 1px, rgba(46,33,24,0.06) 1px, transparent 0);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: 'Karla', sans-serif;
+    padding: 28px 18px 60px;
+  }
+  .wrap{max-width: 1000px; margin: 0 auto;}
+
+  header{ display:flex; align-items:center; gap:18px; margin-bottom: 22px; flex-wrap: wrap; }
+  .dabba{ width:64px; height:64px; flex-shrink:0; }
+  h1{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size: clamp(28px, 4vw, 38px); margin:0; color: var(--chili-deep); letter-spacing: -0.5px; }
+  .tagline{ margin:2px 0 0; color: var(--ink-soft); font-size: 15px; }
+
+  .setup{ background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 26px; box-shadow: 0 2px 0 var(--rule); }
+  .setup-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 16px; align-items:end; }
+  .field label{ display:block; font-family:'Baloo 2', sans-serif; font-weight:600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--chili-deep); margin-bottom: 6px; }
+  .stepper{ display:flex; align-items:center; border: 1.5px solid var(--rule); border-radius: 10px; overflow:hidden; background: var(--steel); width: fit-content; }
+  .stepper button{ width: 38px; height: 38px; border:none; background: transparent; font-size: 18px; font-weight:700; color: var(--chili-deep); cursor:pointer; }
+  .stepper button:hover{ background: var(--turmeric-soft); }
+  .stepper input{ width: 46px; text-align:center; border:none; background:transparent; font-family:'Baloo 2'; font-weight:700; font-size:16px; color: var(--ink); }
+  select{ width:100%; padding: 9px 10px; border-radius: 10px; border: 1.5px solid var(--rule); background: var(--steel); font-family:'Karla', sans-serif; font-size: 14px; color: var(--ink); }
+  .meal-toggles{ display:flex; gap:8px; flex-wrap:wrap; }
+  .chip{ padding: 7px 12px; border-radius: 999px; border: 1.5px solid var(--rule); background: var(--steel); font-size: 13px; font-weight:600; cursor:pointer; user-select:none; color: var(--ink-soft); }
+  .chip.on{ background: var(--cardamom); border-color: var(--cardamom); color: white; }
+  .generate-row{ display:flex; justify-content:flex-end; margin-top:18px; }
+  .btn-primary{ background: var(--chili); color: white; border:none; font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 15px; padding: 12px 26px; border-radius: 10px; cursor:pointer; box-shadow: 0 3px 0 var(--chili-deep); transition: transform .05s; }
+  .btn-primary:active{ transform: translateY(2px); box-shadow: 0 1px 0 var(--chili-deep); }
+  .btn-primary:hover{ background:#B8392C; }
+
+  .plan-head{ display:flex; justify-content:space-between; align-items:baseline; margin: 8px 0 14px; flex-wrap:wrap; gap:8px; }
+  .plan-head h2{ font-family:'Baloo 2'; font-size:20px; margin:0; color:var(--ink); }
+  .plan-head .note{ font-size:13px; color:var(--ink-soft); }
+
+  #planContent{}
+
+  .day-block{ margin-bottom: 16px; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); overflow:hidden; }
+  .day-title-row{ background: var(--wheat-deep); padding: 9px 16px; border-bottom: 1px solid var(--rule); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; }
+  .day-title-left{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .day-name{ font-family:'Baloo 2'; font-weight:700; font-size:15px; color: var(--chili-deep); }
+  .day-date{ font-size:12px; color: var(--ink-soft); font-weight:600; }
+  .day-tag{ font-size:11px; font-weight:700; background: var(--cardamom); color:white; padding:2px 8px; border-radius:999px; }
+  .day-note-btn{ border:none; background:transparent; cursor:pointer; font-size:13px; color: var(--turmeric); font-weight:700; }
+  .day-note-input{ width:100%; margin: 0 16px 10px; padding:6px 10px; border-radius:8px; border:1.5px dashed var(--rule); font-size:12px; font-family:'Karla'; background: #FFFCF5; }
+
+  .meal-row{ display:grid; grid-template-columns: 120px 1fr 34px; gap: 0; align-items:start; border-bottom: 1px dashed var(--rule); }
+  .meal-row:last-child{ border-bottom:none; }
+  .meal-label{ display:flex; align-items:center; gap:8px; padding: 12px 14px; font-size: 12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color: var(--ink-soft); border-right: 1px solid var(--rule); height: 100%; }
+  .meal-icon{ font-size:16px; }
+  .meal-content{ padding: 10px 14px; }
+  .recipe-name{ font-family:'Baloo 2'; font-weight:700; font-size:15px; color: var(--ink); margin:0 0 2px; }
+  .recipe-desc{ font-size: 13px; color: var(--ink-soft); margin:0; line-height:1.4; }
+  .recipe-ingredients{ font-size:12px; color: var(--ink); margin: 5px 0 0; }
+  .recipe-ingredients b{ color: var(--chili-deep); font-weight:700; }
+  .recipe-meta-row{ display:flex; align-items:center; gap:10px; margin-top:6px; flex-wrap:wrap; }
+  .recipe-meta{ font-size:11px; color: var(--cardamom); font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+  .recipe-link{ font-size:11px; font-weight:700; color: var(--turmeric); text-decoration:none; border-bottom: 1px dotted var(--turmeric); }
+  .recipe-link:hover{ color: var(--chili); border-color: var(--chili); }
+  .copy-link-btn{ font-size:11px; font-weight:700; color: var(--ink-soft); background:none; border:none; cursor:pointer; padding:0; }
+  .copy-link-btn:hover{ color: var(--chili); }
+  .shuffle-btn{ width:34px; height:34px; border:none; background:transparent; cursor:pointer; font-size:16px; color: var(--turmeric); display:flex; align-items:center; justify-content:center; }
+  .shuffle-btn:hover{ color: var(--chili); transform: rotate(25deg); }
+
+  .empty-state{ text-align:center; padding: 50px 20px; color: var(--ink-soft); background: var(--card); border: 1.5px dashed var(--rule); border-radius: var(--radius); }
+
+  .footer-actions{ display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .btn-secondary{ background: var(--steel); border: 1.5px solid var(--rule); color: var(--ink); font-family:'Karla'; font-weight:700; font-size:13px; padding: 9px 16px; border-radius:10px; cursor:pointer; }
+  .btn-secondary:hover{ background: var(--turmeric-soft); }
+  .btn-secondary.whatsapp{ background:#EAF6EC; border-color:#B7DEBB; }
+  .btn-secondary.whatsapp:hover{ background:#D5EEDA; }
+
+  .legend{ font-size:12px; color: var(--ink-soft); text-align:center; margin-top:10px; }
+
+  .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background: var(--ink); color:white; padding:9px 18px; border-radius:999px; font-size:13px; opacity:0; pointer-events:none; transition:opacity .25s; z-index:50; }
+  .toast.show{ opacity:1; }
+
+  @media print{
+    .setup, .footer-actions, header .tagline, .day-note-btn{ display:none; }
+    body{ background:white; padding:0; }
+    .shuffle-btn{ display:none; }
+  }
+  @media (max-width: 520px){
+    .meal-row{ grid-template-columns: 90px 1fr 30px; }
+    .meal-label span.txt{ display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <svg class="dabba" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="32" cy="32" r="30" fill="#ECEAE2" stroke="#A93226" stroke-width="2.5"/>
+      <circle cx="32" cy="32" r="21" fill="none" stroke="#C9862E" stroke-width="2"/>
+      <line x1="32" y1="11" x2="32" y2="53" stroke="#D8CBAE" stroke-width="1.5"/>
+      <line x1="11" y1="32" x2="53" y2="32" stroke="#D8CBAE" stroke-width="1.5"/>
+      <circle cx="32" cy="32" r="4.5" fill="#5C7A52"/>
+    </svg>
+    <div>
+      <h1>Aaj Kya Banaye?</h1>
+      <p class="tagline">Set your household once — get the next 7 days of breakfast, tiffin, lunch &amp; dinner, sorted.</p>
+    </div>
+  </header>
+
+  <div class="setup">
+    <div class="setup-grid">
+      <div class="field">
+        <label for="members">Family members</label>
+        <div class="stepper">
+          <button type="button" id="minus">−</button>
+          <input type="text" id="members" value="4" readonly>
+          <button type="button" id="plus">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="diet">Diet</label>
+        <select id="diet">
+          <option value="veg">Vegetarian</option>
+          <option value="both" selected>Veg + occasional non-veg</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="region">Kitchen leaning</label>
+        <select id="region">
+          <option value="any" selected>Mixed / any region</option>
+          <option value="north">North Indian</option>
+          <option value="south">South Indian</option>
+          <option value="west">West Indian</option>
+          <option value="east">East Indian</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Meals to plan</label>
+        <div class="meal-toggles">
+          <div class="chip on" data-meal="breakfast">Breakfast</div>
+          <div class="chip on" data-meal="tiffin">School Tiffin</div>
+          <div class="chip on" data-meal="lunch">Lunch</div>
+          <div class="chip on" data-meal="dinner">Dinner</div>
+        </div>
+      </div>
+    </div>
+    <div class="generate-row">
+      <button class="btn-primary" id="generateBtn">Generate the week's plan</button>
+    </div>
+  </div>
+
+  <div id="planArea">
+    <div class="empty-state">Set your preferences above and generate your first weekly plan. 🍛</div>
+  </div>
+
+  <div class="footer-actions" id="footerActions" style="display:none;">
+    <button class="btn-secondary whatsapp" id="whatsappBtn">📲 Share on WhatsApp</button>
+    <button class="btn-secondary" id="pdfBtn">⬇ Download as PDF</button>
+    <button class="btn-secondary" id="copyBtn">📋 Copy as text</button>
+  </div>
+  <div class="legend" id="legendNote" style="display:none;">🌕 Purnima · 🌑 Amavasya · 🐘 Sankashti Chaturthi · 🙏 Ekadashi (fasting) · 🎉 Festival · 🇮🇳 National holiday — many households go vegetarian on these days. Dates shown are for 2026 as per the standard Hindu Panchang and may shift by a day depending on local sighting/timing.</div>
+
+</div>
+
+<div class="toast" id="toast">Link copied</div>
+
+<script>
+/* ---------------- Recipe database ---------------- */
+const DB = {
+  breakfast: [
+    {name:"Poha", desc:"Flattened rice tossed with onion, peanuts, curry leaves & lemon.", veg:true, region:"west", ing:["Flattened rice (poha)","Onion","Peanuts","Curry leaves","Mustard seeds"]},
+    {name:"Upma", desc:"Roasted semolina cooked with mustard seeds, veggies & curry leaves.", veg:true, region:"south", ing:["Semolina (rava)","Onion","Carrot/beans","Mustard seeds","Curry leaves"]},
+    {name:"Idli with Sambar", desc:"Steamed rice cakes served with lentil-vegetable stew.", veg:true, region:"south", ing:["Idli batter (rice-urad)","Toor dal","Sambar powder","Mixed vegetables","Tamarind"]},
+    {name:"Aloo Paratha with Curd", desc:"Stuffed potato flatbread, served with fresh curd & pickle.", veg:true, region:"north", ing:["Wheat flour","Potato","Green chilli","Curd","Pickle"]},
+    {name:"Besan Chilla", desc:"Savoury gram-flour pancakes with onion, tomato & spices.", veg:true, region:"north", ing:["Gram flour (besan)","Onion","Tomato","Green chilli","Ajwain"]},
+    {name:"Plain Dosa with Chutney", desc:"Crisp fermented rice-lentil crepe with coconut chutney.", veg:true, region:"south", ing:["Dosa batter (rice-urad)","Coconut","Green chilli","Roasted chana dal"]},
+    {name:"Sabudana Khichdi", desc:"Tapioca pearls with peanuts, potato & curry leaves.", veg:true, region:"west", ing:["Sabudana","Peanuts","Potato","Curry leaves","Cumin"]},
+    {name:"Vegetable Daliya", desc:"Broken wheat porridge cooked with mixed vegetables.", veg:true, region:"north", ing:["Broken wheat (daliya)","Mixed vegetables","Onion","Cumin"]},
+    {name:"Moong Dal Chilla", desc:"Protein-rich lentil pancakes, light and easy on the stomach.", veg:true, region:"north", ing:["Split moong dal","Ginger","Green chilli","Onion"]},
+    {name:"Masala Oats", desc:"Oats tempered with mustard seeds, onion & vegetables.", veg:true, region:"any", ing:["Oats","Mixed vegetables","Onion","Mustard seeds"]},
+    {name:"Egg Bhurji with Toast", desc:"Spiced scrambled eggs served with buttered toast.", veg:false, region:"any", ing:["Eggs","Onion","Tomato","Green chilli","Bread"]},
+    {name:"Puri Bhaji", desc:"Fried puffed bread with a mildly spiced potato curry.", veg:true, region:"north", ing:["Wheat flour","Potato","Onion","Turmeric","Cumin"]},
+    {name:"Thepla with Pickle", desc:"Fenugreek-spiced flatbread, a Gujarati breakfast staple.", veg:true, region:"west", ing:["Wheat flour","Fenugreek leaves (methi)","Curd","Pickle"]},
+    {name:"Idiyappam with Coconut Milk", desc:"Steamed rice noodles served with sweetened coconut milk.", veg:true, region:"south", ing:["Rice flour","Coconut milk","Cardamom","Jaggery (optional)"]},
+    {name:"Vegetable Uttapam", desc:"Thick savoury rice pancake topped with onion & tomato.", veg:true, region:"south", ing:["Dosa batter","Onion","Tomato","Coriander"]},
+    {name:"Stuffed Methi Paratha", desc:"Fenugreek leaf flatbread, served with curd.", veg:true, region:"north", ing:["Wheat flour","Fenugreek leaves","Curd","Carom seeds"]},
+  ],
+  tiffin: [
+    {name:"Vegetable Paratha Roll", desc:"Mixed-veg stuffed paratha rolled up, easy to eat cold.", veg:true, region:"north", ing:["Wheat flour","Mixed vegetables","Ginger","Spices"]},
+    {name:"Veg Cheese Sandwich", desc:"Grilled sandwich with cucumber, tomato & cheese.", veg:true, region:"any", ing:["Bread","Cheese","Cucumber","Tomato","Butter"]},
+    {name:"Curd Rice", desc:"Comforting rice mixed with curd, tempered lightly, no reheating needed.", veg:true, region:"south", ing:["Cooked rice","Curd","Mustard seeds","Curry leaves","Pomegranate (optional)"]},
+    {name:"Vegetable Fried Rice", desc:"Lightly spiced rice with mixed vegetables, kid-friendly.", veg:true, region:"any", ing:["Cooked rice","Mixed vegetables","Soy sauce","Spring onion"]},
+    {name:"Indian-style Pasta", desc:"Pasta tossed with ketchup, veggies & mild masala.", veg:true, region:"any", ing:["Pasta","Capsicum","Ketchup","Mixed herbs"]},
+    {name:"Paneer Roll", desc:"Soft roti rolled with spiced paneer and veggies.", veg:true, region:"north", ing:["Roti/wrap","Paneer","Capsicum","Onion","Spices"]},
+    {name:"Stuffed Paratha with Dry Sabzi", desc:"Paratha paired with a simple no-gravy vegetable.", veg:true, region:"north", ing:["Wheat flour","Seasonal vegetable","Cumin","Turmeric"]},
+    {name:"Lemon Rice", desc:"Tangy tempered rice with peanuts and curry leaves.", veg:true, region:"south", ing:["Cooked rice","Lemon","Peanuts","Curry leaves","Mustard seeds"]},
+    {name:"Vegetable Cutlet with Bread", desc:"Pan-fried veggie cutlets with buttered bread slices.", veg:true, region:"any", ing:["Mixed vegetables","Potato","Bread crumbs","Bread slices"]},
+    {name:"Chapati Roll with Dry Aloo Sabzi", desc:"Simple roti rolled with a mildly spiced potato filling.", veg:true, region:"north", ing:["Wheat flour","Potato","Cumin","Turmeric"]},
+    {name:"Mini Uttapam", desc:"Bite-sized savoury pancakes, easy to pack and eat.", veg:true, region:"south", ing:["Dosa batter","Onion","Carrot","Coriander"]},
+    {name:"Puliyogare (Tamarind Rice)", desc:"Tangy tamarind-flavoured rice, stays fresh for hours.", veg:true, region:"south", ing:["Cooked rice","Tamarind","Peanuts","Sesame seeds"]},
+    {name:"Vegetable Khichdi (thick)", desc:"Soft-cooked rice-lentil mix, mild and filling.", veg:true, region:"any", ing:["Rice","Moong dal","Mixed vegetables","Ghee"]},
+    {name:"Corn & Peas Cutlet Sandwich", desc:"Sweetcorn-peas patty tucked into soft bread.", veg:true, region:"any", ing:["Sweet corn","Green peas","Potato","Bread"]},
+    {name:"Aloo Tikki Wrap", desc:"Spiced potato patty wrapped in soft roti.", veg:true, region:"north", ing:["Potato","Roti/wrap","Green chutney","Onion"]},
+  ],
+  lunch: [
+    {name:"Dal Tadka, Jeera Rice, Roti & Salad", desc:"Everyday tempered lentils with cumin rice and fresh salad.", veg:true, region:"north", ing:["Toor/moong dal","Rice","Cumin","Wheat flour","Salad vegetables"]},
+    {name:"Rajma Chawal", desc:"Kidney bean curry simmered in tomato gravy, served with rice.", veg:true, region:"north", ing:["Rajma (kidney beans)","Onion","Tomato","Rice"]},
+    {name:"Chole with Rice", desc:"Spiced chickpea curry, a weekend favourite.", veg:true, region:"north", ing:["Chickpeas (chole)","Onion","Tomato","Chole masala","Rice"]},
+    {name:"Sambar, Rice & Poriyal", desc:"Lentil-vegetable stew with rice and a stir-fried side vegetable.", veg:true, region:"south", ing:["Toor dal","Sambar powder","Mixed vegetables","Rice"]},
+    {name:"Kadhi Chawal", desc:"Tangy yogurt-gram flour curry with steamed rice.", veg:true, region:"north", ing:["Curd","Gram flour (besan)","Rice","Curry leaves"]},
+    {name:"Mixed Vegetable Curry with Roti", desc:"Seasonal vegetables in a light onion-tomato gravy.", veg:true, region:"any", ing:["Seasonal vegetables","Onion","Tomato","Wheat flour"]},
+    {name:"Bhindi Masala, Dal & Roti", desc:"Stir-fried okra with lentils and flatbread.", veg:true, region:"north", ing:["Okra (bhindi)","Onion","Toor dal","Wheat flour"]},
+    {name:"Baingan Bharta with Roti", desc:"Smoky mashed eggplant curry, a classic pairing with roti.", veg:true, region:"north", ing:["Eggplant (baingan)","Onion","Tomato","Wheat flour"]},
+    {name:"Palak Paneer with Roti", desc:"Cottage cheese cubes in a spiced spinach gravy.", veg:true, region:"north", ing:["Spinach (palak)","Paneer","Onion","Wheat flour"]},
+    {name:"Chicken Curry with Rice", desc:"Home-style chicken curry simmered with everyday spices.", veg:false, region:"any", ing:["Chicken","Onion","Tomato","Ginger-garlic","Rice"]},
+    {name:"Fish Curry with Rice", desc:"Coastal-style fish curry in a tangy coconut base.", veg:false, region:"south", ing:["Fish","Coconut","Tamarind","Curry leaves","Rice"]},
+    {name:"Egg Curry with Roti", desc:"Boiled eggs simmered in a spiced onion-tomato gravy.", veg:false, region:"any", ing:["Eggs","Onion","Tomato","Wheat flour"]},
+    {name:"Kadai Paneer with Roti", desc:"Paneer and peppers tossed in a bold kadai masala.", veg:true, region:"north", ing:["Paneer","Capsicum","Onion","Kadai masala"]},
+    {name:"Gobi Aloo, Dal & Roti", desc:"Cauliflower-potato dry sabzi with lentils and flatbread.", veg:true, region:"north", ing:["Cauliflower","Potato","Toor dal","Wheat flour"]},
+    {name:"Curd Rice, Pickle & Papad", desc:"A light, cooling lunch for a warm afternoon.", veg:true, region:"south", ing:["Cooked rice","Curd","Pickle","Papad"]},
+    {name:"Vegetable Pulao with Raita", desc:"One-pot spiced rice with mixed vegetables and cooling yogurt.", veg:true, region:"any", ing:["Rice","Mixed vegetables","Whole spices","Curd"]},
+    {name:"Mutton Curry with Rice", desc:"Slow-cooked mutton curry, a weekend indulgence.", veg:false, region:"any", ing:["Mutton","Onion","Tomato","Whole spices","Rice"]},
+    {name:"Aloo Gobi with Dal & Roti", desc:"Classic potato-cauliflower dry sabzi with lentils.", veg:true, region:"north", ing:["Potato","Cauliflower","Toor dal","Wheat flour"]},
+    {name:"Prawn Curry with Rice", desc:"Coconut-based coastal prawn curry.", veg:false, region:"south", ing:["Prawns","Coconut","Curry leaves","Rice"]},
+  ],
+  dinner: [
+    {name:"Khichdi with Kadhi", desc:"Light rice-lentil khichdi with tangy yogurt curry — easy on digestion.", veg:true, region:"any", ing:["Rice","Moong dal","Curd","Gram flour"]},
+    {name:"Vegetable Soup with Grilled Sandwich", desc:"A light, warm option for a low-key dinner.", veg:true, region:"any", ing:["Mixed vegetables","Bread","Cheese/butter"]},
+    {name:"Roti, Dal & Light Sabzi", desc:"Simple everyday combination, easy to make after a long day.", veg:true, region:"north", ing:["Wheat flour","Toor/moong dal","Seasonal vegetable"]},
+    {name:"Paneer Bhurji with Roti", desc:"Scrambled spiced paneer, quick to put together.", veg:true, region:"north", ing:["Paneer","Onion","Tomato","Wheat flour"]},
+    {name:"Vegetable Pulao", desc:"One-pot rice with vegetables, needs no extra side.", veg:true, region:"any", ing:["Rice","Mixed vegetables","Whole spices"]},
+    {name:"Moong Dal Khichdi", desc:"Light, protein-rich khichdi, gentle on the stomach at night.", veg:true, region:"any", ing:["Rice","Split moong dal","Cumin","Ghee"]},
+    {name:"Egg Curry with Roti", desc:"Simple egg curry, quicker than a meat-based one.", veg:false, region:"any", ing:["Eggs","Onion","Tomato","Wheat flour"]},
+    {name:"Chicken Stew with Rice", desc:"Mild coconut-based stew, comforting for dinner.", veg:false, region:"south", ing:["Chicken","Coconut milk","Potato","Rice"]},
+    {name:"Mixed Dal with Roti", desc:"A blend of lentils cooked simply with roti.", veg:true, region:"any", ing:["Mixed lentils","Onion","Tomato","Wheat flour"]},
+    {name:"Vegetable Stir-fry with Roti", desc:"Quick tossed vegetables with light seasoning.", veg:true, region:"any", ing:["Seasonal vegetables","Garlic","Wheat flour"]},
+    {name:"Tomato Soup with Multigrain Toast", desc:"A light finish to the day.", veg:true, region:"any", ing:["Tomato","Garlic","Multigrain bread"]},
+    {name:"Methi Thepla with Curd", desc:"Leftover-friendly flatbread paired with fresh curd.", veg:true, region:"west", ing:["Wheat flour","Fenugreek leaves","Curd"]},
+    {name:"Dal Palak with Rice", desc:"Spinach-lentil curry, nutritious and light.", veg:true, region:"north", ing:["Toor dal","Spinach","Rice"]},
+    {name:"Stuffed Capsicum with Roti", desc:"Bell peppers stuffed with a spiced potato filling.", veg:true, region:"north", ing:["Capsicum","Potato","Spices","Wheat flour"]},
+    {name:"Paneer Tikka with Roti", desc:"Grilled spiced paneer, a lighter tandoor-style dinner.", veg:true, region:"north", ing:["Paneer","Curd","Tikka masala","Wheat flour"]},
+  ]
+};
+
+const MEAL_META = {
+  breakfast: {label:"Breakfast", icon:"☀️"},
+  tiffin: {label:"Tiffin", icon:"🍱"},
+  lunch: {label:"Lunch", icon:"🍛"},
+  dinner: {label:"Dinner", icon:"🌙"}
+};
+
+/* ---------------- 2026 festival / fasting-day calendar ---------------- */
+/* Dates per standard Hindu Panchang for New Delhi/India, 2026. Approximate for moon-sighting-based dates (Eid, Good Friday). */
+const EVENTS = {
+  "2026-01-03":"🌕 Paush Purnima","2026-01-06":"🐘 Sankashti Chaturthi","2026-01-14":"🎉 Makar Sankranti / Pongal",
+  "2026-01-18":"🌑 Magha Amavasya","2026-01-23":"🎉 Basant Panchami","2026-01-26":"🇮🇳 Republic Day","2026-01-29":"🙏 Jaya Ekadashi",
+  "2026-02-01":"🌕 Magha Purnima","2026-02-05":"🐘 Sankashti Chaturthi","2026-02-13":"🙏 Vijaya Ekadashi","2026-02-15":"🎉 Mahashivratri",
+  "2026-02-17":"🌑 Phalguna Amavasya","2026-02-27":"🙏 Amalaki Ekadashi",
+  "2026-03-03":"🌕 Holika Dahan","2026-03-04":"🎉 Holi","2026-03-06":"🐘 Sankashti Chaturthi","2026-03-15":"🙏 Papmochani Ekadashi",
+  "2026-03-19":"🎉 Chaitra Navratri begins / Gudi Padwa","2026-03-20":"🎉 Eid al-Fitr (approx.)","2026-03-26":"🎉 Ram Navami",
+  "2026-03-27":"🎉 Navratri Parana","2026-03-29":"🙏 Kamada Ekadashi",
+  "2026-04-02":"🎉 Hanuman Jayanti / Chaitra Purnima","2026-04-03":"✝️ Good Friday (approx.)","2026-04-05":"🐘 Sankashti Chaturthi",
+  "2026-04-13":"🙏 Varuthini Ekadashi","2026-04-17":"🌑 Vaishakh Amavasya","2026-04-19":"🎉 Akshaya Tritiya","2026-04-27":"🙏 Mohini Ekadashi",
+  "2026-05-01":"🌕 Buddha Purnima","2026-05-05":"🐘 Sankashti Chaturthi","2026-05-13":"🙏 Apara Ekadashi","2026-05-16":"🌑 Jyeshtha Amavasya",
+  "2026-05-27":"🙏 Padmini Ekadashi","2026-05-31":"🌕 Purnima Vrat",
+  "2026-06-03":"🐘 Sankashti Chaturthi","2026-06-11":"🙏 Param Ekadashi","2026-06-15":"🌑 New Moon (Amavasya)","2026-06-25":"🙏 Nirjala Ekadashi",
+  "2026-06-29":"🌕 Jyeshtha Purnima",
+  "2026-07-03":"🐘 Sankashti Chaturthi","2026-07-10":"🙏 Yogini Ekadashi","2026-07-14":"🌑 Ashadha Amavasya","2026-07-16":"🎉 Jagannath Rath Yatra",
+  "2026-07-25":"🙏 Devshayani Ekadashi (Chaturmas begins)","2026-07-29":"🌕 Guru Purnima",
+  "2026-08-02":"🐘 Sankashti Chaturthi","2026-08-09":"🙏 Kamika Ekadashi","2026-08-12":"🌑 Shravan Amavasya","2026-08-15":"🇮🇳 Independence Day",
+  "2026-08-17":"🎉 Nag Panchami","2026-08-23":"🙏 Shravan Putrada Ekadashi","2026-08-26":"🎉 Onam","2026-08-28":"🌕 Raksha Bandhan",
+  "2026-08-31":"🐘 Sankashti Chaturthi / Kajari Teej",
+  "2026-09-04":"🎉 Janmashtami","2026-09-07":"🙏 Aja Ekadashi","2026-09-11":"🌑 Bhadrapada Amavasya","2026-09-14":"🎉 Ganesh Chaturthi",
+  "2026-09-22":"🙏 Parivartini Ekadashi","2026-09-25":"🎉 Anant Chaturdashi (Visarjan)","2026-09-26":"🌕 Bhadrapada Purnima",
+  "2026-09-29":"🐘 Sankashti Chaturthi",
+  "2026-10-02":"🇮🇳 Gandhi Jayanti","2026-10-06":"🙏 Indira Ekadashi","2026-10-10":"🌑 Sarva Pitru Amavasya","2026-10-11":"🎉 Sharad Navratri begins",
+  "2026-10-19":"🎉 Durga Ashtami / Navami","2026-10-20":"🎉 Dussehra (Vijayadashami)","2026-10-22":"🙏 Papankusha Ekadashi",
+  "2026-10-26":"🌕 Ashwin Purnima","2026-10-29":"🐘 Sankashti Chaturthi / Karva Chauth",
+  "2026-11-05":"🙏 Rama Ekadashi","2026-11-06":"🎉 Dhanteras","2026-11-08":"🎉 Diwali","2026-11-09":"🌑 Kartik Amavasya",
+  "2026-11-10":"🎉 Govardhan Puja","2026-11-11":"🎉 Bhai Dooj","2026-11-15":"🎉 Chhath Puja","2026-11-20":"🙏 Devutthana Ekadashi (Chaturmas ends)",
+  "2026-11-24":"🌕 Kartik Purnima","2026-11-27":"🐘 Sankashti Chaturthi",
+  "2026-12-04":"🙏 Utpanna Ekadashi","2026-12-08":"🌑 Margashirsha Amavasya","2026-12-20":"🙏 Mokshada Ekadashi","2026-12-23":"🌕 Margashirsha Purnima",
+  "2026-12-25":"🎄 Christmas","2026-12-26":"🐘 Sankashti Chaturthi"
+};
+
+let currentPlan = {};
+let activeMeals = ["breakfast","tiffin","lunch","dinner"];
+let planDates = [];       // array of Date objects, index 0 = today
+let dayNotes = {};        // keyed by date string -> custom note
+
+/* ---------------- Date helpers ---------------- */
+function fmtKey(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function fmtDisplay(d){
+  return d.toLocaleDateString('en-IN',{weekday:'long'}) + " · " + d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+}
+function buildDates(){
+  planDates = [];
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  for(let i=0;i<7;i++){
+    const d = new Date(today);
+    d.setDate(today.getDate()+i);
+    planDates.push(d);
+  }
+}
+
+/* ---------------- Recipe pool helpers ---------------- */
+function filteredPool(mealType){
+  const diet = document.getElementById('diet').value;
+  const region = document.getElementById('region').value;
+  return DB[mealType].filter(r=>{
+    const dietOk = diet === 'veg' ? r.veg : true;
+    const regionOk = region === 'any' ? true : (r.region === region || r.region === 'any');
+    return dietOk && regionOk;
+  });
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pickWeek(mealType){
+  let pool = shuffle(filteredPool(mealType));
+  if(pool.length === 0) pool = shuffle(DB[mealType]);
+  const week = [];
+  for(let i=0;i<7;i++){
+    if(pool.length === 0) pool = shuffle(filteredPool(mealType).length ? filteredPool(mealType) : DB[mealType]);
+    week.push(pool.pop());
+  }
+  return week;
+}
+function pickOne(mealType, avoidName){
+  let pool = filteredPool(mealType).filter(r=>r.name !== avoidName);
+  if(pool.length === 0) pool = DB[mealType].filter(r=>r.name !== avoidName);
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function recipeLink(name){
+  return "https://www.google.com/search?q=" + encodeURIComponent(name + " recipe");
+}
+
+/* ---------------- Rendering ---------------- */
+function render(){
+  const planArea = document.getElementById('planArea');
+  const footer = document.getElementById('footerActions');
+  const legend = document.getElementById('legendNote');
+  if(Object.keys(currentPlan).length === 0){
+    planArea.innerHTML = '<div class="empty-state">Set your preferences above and generate your first weekly plan. 🍛</div>';
+    footer.style.display = 'none';
+    legend.style.display = 'none';
+    return;
+  }
+  footer.style.display = 'flex';
+  legend.style.display = 'block';
+  const members = document.getElementById('members').value;
+
+  let html = `<div id="planContent"><div class="plan-head">
+      <h2>Your next 7 days</h2>
+      <div class="note">Serving size: ~${members} people per meal · tap ↻ to swap a dish</div>
+    </div>`;
+
+  planDates.forEach((d, dayIdx)=>{
+    const key = fmtKey(d);
+    const tag = EVENTS[key];
+    const note = dayNotes[key];
+    html += `<div class="day-block">
+      <div class="day-title-row">
+        <div class="day-title-left">
+          <span class="day-name">${d.toLocaleDateString('en-IN',{weekday:'long'})}</span>
+          <span class="day-date">${d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
+          ${tag ? `<span class="day-tag">${tag}</span>` : ''}
+        </div>
+        <button class="day-note-btn" data-day="${dayIdx}">${note ? '✏️ edit note' : '+ add note'}</button>
+      </div>
+      ${note !== undefined ? `<input class="day-note-input" data-daynote="${dayIdx}" value="${note.replace(/"/g,'&quot;')}" placeholder="e.g. India match tonight, guests coming, fasting day...">` : ''}
+    `;
+    activeMeals.forEach(mealType=>{
+      const recipe = currentPlan[mealType][dayIdx];
+      const meta = MEAL_META[mealType];
+      const link = recipeLink(recipe.name);
+      html += `
+        <div class="meal-row">
+          <div class="meal-label"><span class="meal-icon">${meta.icon}</span><span class="txt">${meta.label}</span></div>
+          <div class="meal-content">
+            <p class="recipe-name">${recipe.name}</p>
+            <p class="recipe-desc">${recipe.desc}</p>
+            <p class="recipe-ingredients"><b>Main ingredients:</b> ${recipe.ing.join(', ')}</p>
+            <div class="recipe-meta-row">
+              <span class="recipe-meta">${recipe.veg ? 'Veg' : 'Non-veg'} · ${recipe.region === 'any' ? 'Pan-India' : recipe.region.charAt(0).toUpperCase()+recipe.region.slice(1)+' Indian'}</span>
+              <a class="recipe-link" href="${link}" target="_blank" rel="noopener">🔗 View recipe</a>
+              <button class="copy-link-btn" data-link="${link}">📎 copy link</button>
+            </div>
+          </div>
+          <button class="shuffle-btn" data-meal="${mealType}" data-day="${dayIdx}" title="Swap this dish">↻</button>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+  html += `</div>`;
+
+  planArea.innerHTML = html;
+
+  planArea.querySelectorAll('.shuffle-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const mealType = btn.dataset.meal;
+      const day = parseInt(btn.dataset.day,10);
+      const current = currentPlan[mealType][day];
+      currentPlan[mealType][day] = pickOne(mealType, current.name);
+      render();
+    });
+  });
+  planArea.querySelectorAll('.day-note-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const day = parseInt(btn.dataset.day,10);
+      const key = fmtKey(planDates[day]);
+      if(dayNotes[key] === undefined) dayNotes[key] = "";
+      else delete dayNotes[key];
+      render();
+    });
+  });
+  planArea.querySelectorAll('.day-note-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const day = parseInt(inp.dataset.daynote,10);
+      const key = fmtKey(planDates[day]);
+      dayNotes[key] = inp.value;
+    });
+  });
+  planArea.querySelectorAll('.copy-link-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      navigator.clipboard.writeText(btn.dataset.link).then(()=> showToast('Recipe link copied'));
+    });
+  });
+}
+
+function generatePlan(){
+  activeMeals = Array.from(document.querySelectorAll('.chip.on')).map(c=>c.dataset.meal);
+  if(activeMeals.length === 0){ alert('Pick at least one meal to plan.'); return; }
+  buildDates();
+  currentPlan = {};
+  activeMeals.forEach(mealType=>{ currentPlan[mealType] = pickWeek(mealType); });
+  dayNotes = {};
+  render();
+}
+
+/* ---------------- Toast ---------------- */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 1800);
+}
+
+/* ---------------- Export helpers ---------------- */
+function planAsText(){
+  const members = document.getElementById('members').value;
+  let lines = [`🍛 *Weekly Meal Plan* (for ~${members} people)\n`];
+  planDates.forEach((d, dayIdx)=>{
+    const key = fmtKey(d);
+    const tag = EVENTS[key] ? `  [${EVENTS[key]}]` : '';
+    const note = dayNotes[key] ? `  (${dayNotes[key]})` : '';
+    lines.push(`*${d.toLocaleDateString('en-IN',{weekday:'long'})}, ${d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}*${tag}${note}`);
+    activeMeals.forEach(mealType=>{
+      const recipe = currentPlan[mealType][dayIdx];
+      lines.push(`  ${MEAL_META[mealType].icon} ${MEAL_META[mealType].label}: ${recipe.name}`);
+    });
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
+document.getElementById('whatsappBtn').addEventListener('click', ()=>{
+  const text = planAsText();
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+});
+document.getElementById('copyBtn').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(planAsText()).then(()=> showToast('Weekly plan copied to clipboard'));
+});
+document.getElementById('pdfBtn').addEventListener('click', ()=>{
+  const el = document.getElementById('planContent');
+  const opt = {
+    margin: 8,
+    filename: 'weekly-meal-plan.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css','legacy'], avoid: '.day-block' }
+  };
+  showToast('Preparing your PDF…');
+  html2pdf().set(opt).from(el).save();
+});
+
+/* ---------------- Controls ---------------- */
+document.getElementById('minus').addEventListener('click', ()=>{
+  const input = document.getElementById('members');
+  input.value = Math.max(1, parseInt(input.value,10)-1);
+  if(Object.keys(currentPlan).length) render();
+});
+document.getElementById('plus').addEventListener('click', ()=>{
+  const input = document.getElementById('members');
+  input.value = Math.min(15, parseInt(input.value,10)+1);
+  if(Object.keys(currentPlan).length) render();
+});
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click', ()=> chip.classList.toggle('on'));
+});
+document.getElementById('generateBtn').addEventListener('click', generatePlan);
+</script>
+</body>
+</html>
