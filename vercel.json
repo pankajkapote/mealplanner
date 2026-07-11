@@ -1,6 +1,6 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/indian-meal-planner-2.html" }
+    { "source": "/", "destination": "/indian-meal-planner-3.html" }
   ]
 }
