@@ -120,6 +120,16 @@
   .special-badge.festival{ background:#FBE3C6; color:#8A4B12; }
   .special-badge.fasting{ background: var(--cardamom-soft); color:#3E5636; }
   .special-badge.treat{ background:#FDE0E0; color: var(--chili-deep); }
+  .special-badge.protein{ background:#E6D3C5; color:#5C3A21; }
+
+  .base-line{ font-size:12px; color: var(--cardamom); font-weight:700; margin: 5px 0 0; }
+  .prep-ahead-note{ font-size:12px; color:#8A5A18; background:#FBF0DB; border:1px dashed #E4C48C; border-radius:8px; padding:5px 9px; margin:6px 0 0; }
+  .time-tag{ font-size:11px; font-weight:700; color: var(--ink-soft); }
+
+  .reminder-banner{ margin: 0 16px 10px; padding: 8px 12px; background:#FBF0DB; border:1px dashed #E4C48C; border-radius:10px; font-size:12px; color:#8A5A18; }
+  .reminder-banner div{ padding:2px 0; }
+  .reminder-banner div.urgent{ color: var(--chili-deep); font-weight:700; }
+  .special-toggle em{ font-style:normal; color: var(--ink-soft); font-weight:500; }
   .btn-primary{ background: var(--chili); color: white; border:none; font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 15px; padding: 12px 26px; border-radius: 10px; cursor:pointer; box-shadow: 0 3px 0 var(--chili-deep); transition: transform .05s; }
   .btn-primary:active{ transform: translateY(2px); box-shadow: 0 1px 0 var(--chili-deep); }
   .btn-primary:hover{ background:#B8392C; }
@@ -287,6 +297,12 @@
         </select>
       </div>
     </div>
+    <div class="special-toggle-row home-row">
+      <label class="special-toggle">
+        <input type="checkbox" id="homeStyle" checked>
+        <span>🏠 Home-style mode: keep chapati/bhakri + dal-rice as the everyday base, and just rotate the sabzi <em>(uncheck for more restaurant-style combo meals)</em></span>
+      </label>
+    </div>
     <div class="special-toggle-row">
       <label class="special-toggle">
         <input type="checkbox" id="funSpecials">
@@ -307,7 +323,7 @@
     <button class="btn-secondary" id="pdfBtn">⬇ Download as PDF</button>
     <button class="btn-secondary" id="copyBtn">📋 Copy as text</button>
   </div>
-  <div class="legend" id="legendNote" style="display:none;">🌕 Purnima · 🌑 Amavasya · 🐘 Sankashti Chaturthi · 🙏 Ekadashi (fasting) · 🎉 Festival · 🇮🇳 National holiday — many households go vegetarian on these days. Dates shown are for 2026 as per the standard Hindu Panchang and may shift by a day depending on local sighting/timing.<br>Calorie/protein figures are indicative estimates per serving for everyday planning, not lab-tested nutrition data.</div>
+  <div class="legend" id="legendNote" style="display:none;">🌕 Purnima · 🌑 Amavasya · 🐘 Sankashti Chaturthi · 🙏 Ekadashi (fasting) · 🎉 Festival · 🇮🇳 National holiday — many households go vegetarian on these days. Dates shown are for 2026 as per the standard Hindu Panchang and may shift by a day depending on local sighting/timing.<br>Calorie/protein figures are indicative estimates per serving for everyday planning, not lab-tested nutrition data.<br>⏳ Prep ahead flags things like soaking rajma/chole, fermenting dosa-idli batter, or sprouting matki — with a reminder shown the evening before it's needed.</div>
 
   <div class="credit">Humanity has split the atom, mapped the genome, and put a rover on Mars — yet every single evening, one question still brings entire households to a standstill: <em>"aaj kya banaye?"</em> 🍳 This modest attempt at solving that ancient civilizational crisis was engineered by <strong>Pankaj Kapote</strong>. If it saved you from tonight's kitchen debate — you know who to thank. 🙏</div>
 
@@ -319,85 +335,85 @@
 /* ---------------- Recipe database ---------------- */
 const DB = {
   breakfast: [
-    {name:"Poha", desc:"Flattened rice tossed with onion, peanuts, curry leaves & lemon.", veg:true, region:"west", ing:["Flattened rice (poha)","Onion","Peanuts","Curry leaves","Mustard seeds"], cal:250, protein:5},
-    {name:"Upma", desc:"Roasted semolina cooked with mustard seeds, veggies & curry leaves.", veg:true, region:"south", ing:["Semolina (rava)","Onion","Carrot/beans","Mustard seeds","Curry leaves"], cal:220, protein:6},
-    {name:"Idli with Sambar", desc:"Steamed rice cakes served with lentil-vegetable stew.", veg:true, region:"south", ing:["Idli batter (rice-urad)","Toor dal","Sambar powder","Mixed vegetables","Tamarind"], cal:240, protein:8},
-    {name:"Aloo Paratha with Curd", desc:"Stuffed potato flatbread, served with fresh curd & pickle.", veg:true, region:"north", ing:["Wheat flour","Potato","Green chilli","Curd","Pickle"], cal:320, protein:8},
-    {name:"Besan Chilla", desc:"Savoury gram-flour pancakes with onion, tomato & spices.", veg:true, region:"north", ing:["Gram flour (besan)","Onion","Tomato","Green chilli","Ajwain"], cal:200, protein:9},
-    {name:"Plain Dosa with Chutney", desc:"Crisp fermented rice-lentil crepe with coconut chutney.", veg:true, region:"south", ing:["Dosa batter (rice-urad)","Coconut","Green chilli","Roasted chana dal"], cal:210, protein:5},
-    {name:"Sabudana Khichdi", desc:"Tapioca pearls with peanuts, potato & curry leaves.", veg:true, region:"west", ing:["Sabudana","Peanuts","Potato","Curry leaves","Cumin"], cal:300, protein:5, fast:true},
-    {name:"Vegetable Daliya", desc:"Broken wheat porridge cooked with mixed vegetables.", veg:true, region:"north", ing:["Broken wheat (daliya)","Mixed vegetables","Onion","Cumin"], cal:220, protein:7},
-    {name:"Moong Dal Chilla", desc:"Protein-rich lentil pancakes, light and easy on the stomach.", veg:true, region:"north", ing:["Split moong dal","Ginger","Green chilli","Onion"], cal:180, protein:10},
-    {name:"Masala Oats", desc:"Oats tempered with mustard seeds, onion & vegetables.", veg:true, region:"any", ing:["Oats","Mixed vegetables","Onion","Mustard seeds"], cal:200, protein:7},
-    {name:"Egg Bhurji with Toast", desc:"Spiced scrambled eggs served with buttered toast.", veg:false, region:"any", ing:["Eggs","Onion","Tomato","Green chilli","Bread"], cal:320, protein:18},
-    {name:"Puri Bhaji", desc:"Fried puffed bread with a mildly spiced potato curry.", veg:true, region:"north", ing:["Wheat flour","Potato","Onion","Turmeric","Cumin"], cal:380, protein:7},
-    {name:"Thepla with Pickle", desc:"Fenugreek-spiced flatbread, a Gujarati breakfast staple.", veg:true, region:"west", ing:["Wheat flour","Fenugreek leaves (methi)","Curd","Pickle"], cal:260, protein:6},
-    {name:"Idiyappam with Coconut Milk", desc:"Steamed rice noodles served with sweetened coconut milk.", veg:true, region:"south", ing:["Rice flour","Coconut milk","Cardamom","Jaggery (optional)"], cal:260, protein:5},
-    {name:"Vegetable Uttapam", desc:"Thick savoury rice pancake topped with onion & tomato.", veg:true, region:"south", ing:["Dosa batter","Onion","Tomato","Coriander"], cal:230, protein:6},
-    {name:"Stuffed Methi Paratha", desc:"Fenugreek leaf flatbread, served with curd.", veg:true, region:"north", ing:["Wheat flour","Fenugreek leaves","Curd","Carom seeds"], cal:300, protein:7},
-    {name:"Thalipeeth with Curd & Butter", desc:"Maharashtrian multigrain savoury pancake, a home-style classic.", veg:true, region:"west", ing:["Bhajani (multigrain flour)","Onion","Curd","Butter"], cal:280, protein:8},
-    {name:"Sabudana Wada", desc:"Crisp fried tapioca-peanut fritters, a favourite fasting-day breakfast.", veg:true, region:"west", ing:["Sabudana","Peanuts","Potato","Green chilli"], cal:260, protein:5, fast:true},
-    {name:"Rajgira Paratha with Curd", desc:"Amaranth-flour flatbread, commonly eaten on fasting days.", veg:true, region:"west", ing:["Rajgira (amaranth) flour","Potato","Curd"], cal:270, protein:6, fast:true},
+    {name:"Poha", desc:"Flattened rice tossed with onion, peanuts, curry leaves & lemon.", veg:true, region:"west", ing:["Flattened rice (poha)","Onion","Peanuts","Curry leaves","Mustard seeds"], cal:250, protein:5, prepTime:15},
+    {name:"Upma", desc:"Roasted semolina cooked with mustard seeds, veggies & curry leaves.", veg:true, region:"south", ing:["Semolina (rava)","Onion","Carrot/beans","Mustard seeds","Curry leaves"], cal:220, protein:6, prepTime:15},
+    {name:"Idli with Sambar", desc:"Steamed rice cakes served with lentil-vegetable stew.", veg:true, region:"south", ing:["Idli batter (rice-urad)","Toor dal","Sambar powder","Mixed vegetables","Tamarind"], cal:240, protein:8, prepTime:25, prepAhead:"Soak & grind batter, ferment overnight"},
+    {name:"Aloo Paratha with Curd", desc:"Stuffed potato flatbread, served with fresh curd & pickle.", veg:true, region:"north", ing:["Wheat flour","Potato","Green chilli","Curd","Pickle"], cal:320, protein:8, prepTime:25},
+    {name:"Besan Chilla", desc:"Savoury gram-flour pancakes with onion, tomato & spices.", veg:true, region:"north", ing:["Gram flour (besan)","Onion","Tomato","Green chilli","Ajwain"], cal:200, protein:9, prepTime:15},
+    {name:"Plain Dosa with Chutney", desc:"Crisp fermented rice-lentil crepe with coconut chutney.", veg:true, region:"south", ing:["Dosa batter (rice-urad)","Coconut","Green chilli","Roasted chana dal"], cal:210, protein:5, prepTime:20, prepAhead:"Soak & grind batter, ferment overnight"},
+    {name:"Sabudana Khichdi", desc:"Tapioca pearls with peanuts, potato & curry leaves.", veg:true, region:"west", ing:["Sabudana","Peanuts","Potato","Curry leaves","Cumin"], cal:300, protein:5, fast:true, prepTime:20, prepAhead:"Soak sabudana 4-6 hrs or overnight"},
+    {name:"Vegetable Daliya", desc:"Broken wheat porridge cooked with mixed vegetables.", veg:true, region:"north", ing:["Broken wheat (daliya)","Mixed vegetables","Onion","Cumin"], cal:220, protein:7, prepTime:20},
+    {name:"Moong Dal Chilla", desc:"Protein-rich lentil pancakes, light and easy on the stomach.", veg:true, region:"north", ing:["Split moong dal","Ginger","Green chilli","Onion"], cal:180, protein:10, prepTime:15},
+    {name:"Masala Oats", desc:"Oats tempered with mustard seeds, onion & vegetables.", veg:true, region:"any", ing:["Oats","Mixed vegetables","Onion","Mustard seeds"], cal:200, protein:7, prepTime:10},
+    {name:"Egg Bhurji with Toast", desc:"Spiced scrambled eggs served with buttered toast.", veg:false, region:"any", ing:["Eggs","Onion","Tomato","Green chilli","Bread"], cal:320, protein:18, prepTime:15},
+    {name:"Puri Bhaji", desc:"Fried puffed bread with a mildly spiced potato curry.", veg:true, region:"north", ing:["Wheat flour","Potato","Onion","Turmeric","Cumin"], cal:380, protein:7, prepTime:30},
+    {name:"Thepla with Pickle", desc:"Fenugreek-spiced flatbread, a Gujarati breakfast staple.", veg:true, region:"west", ing:["Wheat flour","Fenugreek leaves (methi)","Curd","Pickle"], cal:260, protein:6, prepTime:20},
+    {name:"Idiyappam with Coconut Milk", desc:"Steamed rice noodles served with sweetened coconut milk.", veg:true, region:"south", ing:["Rice flour","Coconut milk","Cardamom","Jaggery (optional)"], cal:260, protein:5, prepTime:25},
+    {name:"Vegetable Uttapam", desc:"Thick savoury rice pancake topped with onion & tomato.", veg:true, region:"south", ing:["Dosa batter","Onion","Tomato","Coriander"], cal:230, protein:6, prepTime:20, prepAhead:"Ferment dosa/uttapam batter overnight"},
+    {name:"Stuffed Methi Paratha", desc:"Fenugreek leaf flatbread, served with curd.", veg:true, region:"north", ing:["Wheat flour","Fenugreek leaves","Curd","Carom seeds"], cal:300, protein:7, prepTime:25},
+    {name:"Thalipeeth with Curd & Butter", desc:"Maharashtrian multigrain savoury pancake, a home-style classic.", veg:true, region:"west", ing:["Bhajani (multigrain flour)","Onion","Curd","Butter"], cal:280, protein:8, prepTime:20},
+    {name:"Sabudana Wada", desc:"Crisp fried tapioca-peanut fritters, a favourite fasting-day breakfast.", veg:true, region:"west", ing:["Sabudana","Peanuts","Potato","Green chilli"], cal:260, protein:5, fast:true, prepTime:25, prepAhead:"Soak sabudana 4-6 hrs or overnight"},
+    {name:"Rajgira Paratha with Curd", desc:"Amaranth-flour flatbread, commonly eaten on fasting days.", veg:true, region:"west", ing:["Rajgira (amaranth) flour","Potato","Curd"], cal:270, protein:6, fast:true, prepTime:20},
   ],
   tiffin: [
-    {name:"Vegetable Paratha Roll", desc:"Mixed-veg stuffed paratha rolled up, easy to eat cold.", veg:true, region:"north", ing:["Wheat flour","Mixed vegetables","Ginger","Spices"], cal:280, protein:6},
-    {name:"Veg Cheese Sandwich", desc:"Grilled sandwich with cucumber, tomato & cheese.", veg:true, region:"any", ing:["Bread","Cheese","Cucumber","Tomato","Butter"], cal:260, protein:9},
-    {name:"Curd Rice", desc:"Comforting rice mixed with curd, tempered lightly, no reheating needed.", veg:true, region:"south", ing:["Cooked rice","Curd","Mustard seeds","Curry leaves","Pomegranate (optional)"], cal:230, protein:6},
-    {name:"Vegetable Fried Rice", desc:"Lightly spiced rice with mixed vegetables, kid-friendly.", veg:true, region:"any", ing:["Cooked rice","Mixed vegetables","Soy sauce","Spring onion"], cal:300, protein:6},
-    {name:"Indian-style Pasta", desc:"Pasta tossed with ketchup, veggies & mild masala.", veg:true, region:"any", ing:["Pasta","Capsicum","Ketchup","Mixed herbs"], cal:320, protein:8},
-    {name:"Paneer Roll", desc:"Soft roti rolled with spiced paneer and veggies.", veg:true, region:"north", ing:["Roti/wrap","Paneer","Capsicum","Onion","Spices"], cal:300, protein:11},
-    {name:"Stuffed Paratha with Dry Sabzi", desc:"Paratha paired with a simple no-gravy vegetable.", veg:true, region:"north", ing:["Wheat flour","Seasonal vegetable","Cumin","Turmeric"], cal:280, protein:6},
-    {name:"Lemon Rice", desc:"Tangy tempered rice with peanuts and curry leaves.", veg:true, region:"south", ing:["Cooked rice","Lemon","Peanuts","Curry leaves","Mustard seeds"], cal:240, protein:5},
-    {name:"Vegetable Cutlet with Bread", desc:"Pan-fried veggie cutlets with buttered bread slices.", veg:true, region:"any", ing:["Mixed vegetables","Potato","Bread crumbs","Bread slices"], cal:270, protein:6},
-    {name:"Chapati Roll with Dry Aloo Sabzi", desc:"Simple roti rolled with a mildly spiced potato filling.", veg:true, region:"north", ing:["Wheat flour","Potato","Cumin","Turmeric"], cal:250, protein:5},
-    {name:"Mini Uttapam", desc:"Bite-sized savoury pancakes, easy to pack and eat.", veg:true, region:"south", ing:["Dosa batter","Onion","Carrot","Coriander"], cal:220, protein:6},
-    {name:"Puliyogare (Tamarind Rice)", desc:"Tangy tamarind-flavoured rice, stays fresh for hours.", veg:true, region:"south", ing:["Cooked rice","Tamarind","Peanuts","Sesame seeds"], cal:260, protein:5},
-    {name:"Vegetable Khichdi (thick)", desc:"Soft-cooked rice-lentil mix, mild and filling.", veg:true, region:"any", ing:["Rice","Moong dal","Mixed vegetables","Ghee"], cal:250, protein:7},
-    {name:"Corn & Peas Cutlet Sandwich", desc:"Sweetcorn-peas patty tucked into soft bread.", veg:true, region:"any", ing:["Sweet corn","Green peas","Potato","Bread"], cal:270, protein:7},
-    {name:"Aloo Tikki Wrap", desc:"Spiced potato patty wrapped in soft roti.", veg:true, region:"north", ing:["Potato","Roti/wrap","Green chutney","Onion"], cal:260, protein:5},
+    {name:"Vegetable Paratha Roll", desc:"Mixed-veg stuffed paratha rolled up, easy to eat cold.", veg:true, region:"north", ing:["Wheat flour","Mixed vegetables","Ginger","Spices"], cal:280, protein:6, prepTime:20},
+    {name:"Veg Cheese Sandwich", desc:"Grilled sandwich with cucumber, tomato & cheese.", veg:true, region:"any", ing:["Bread","Cheese","Cucumber","Tomato","Butter"], cal:260, protein:9, prepTime:10},
+    {name:"Curd Rice", desc:"Comforting rice mixed with curd, tempered lightly, no reheating needed.", veg:true, region:"south", ing:["Cooked rice","Curd","Mustard seeds","Curry leaves","Pomegranate (optional)"], cal:230, protein:6, prepTime:10},
+    {name:"Vegetable Fried Rice", desc:"Lightly spiced rice with mixed vegetables, kid-friendly.", veg:true, region:"any", ing:["Cooked rice","Mixed vegetables","Soy sauce","Spring onion"], cal:300, protein:6, prepTime:15},
+    {name:"Indian-style Pasta", desc:"Pasta tossed with ketchup, veggies & mild masala.", veg:true, region:"any", ing:["Pasta","Capsicum","Ketchup","Mixed herbs"], cal:320, protein:8, prepTime:20},
+    {name:"Paneer Roll", desc:"Soft roti rolled with spiced paneer and veggies.", veg:true, region:"north", ing:["Roti/wrap","Paneer","Capsicum","Onion","Spices"], cal:300, protein:11, prepTime:15},
+    {name:"Stuffed Paratha with Dry Sabzi", desc:"Paratha paired with a simple no-gravy vegetable.", veg:true, region:"north", ing:["Wheat flour","Seasonal vegetable","Cumin","Turmeric"], cal:280, protein:6, prepTime:25},
+    {name:"Lemon Rice", desc:"Tangy tempered rice with peanuts and curry leaves.", veg:true, region:"south", ing:["Cooked rice","Lemon","Peanuts","Curry leaves","Mustard seeds"], cal:240, protein:5, prepTime:15},
+    {name:"Vegetable Cutlet with Bread", desc:"Pan-fried veggie cutlets with buttered bread slices.", veg:true, region:"any", ing:["Mixed vegetables","Potato","Bread crumbs","Bread slices"], cal:270, protein:6, prepTime:20},
+    {name:"Chapati Roll with Dry Aloo Sabzi", desc:"Simple roti rolled with a mildly spiced potato filling.", veg:true, region:"north", ing:["Wheat flour","Potato","Cumin","Turmeric"], cal:250, protein:5, prepTime:20},
+    {name:"Mini Uttapam", desc:"Bite-sized savoury pancakes, easy to pack and eat.", veg:true, region:"south", ing:["Dosa batter","Onion","Carrot","Coriander"], cal:220, protein:6, prepTime:15, prepAhead:"Ferment dosa/uttapam batter overnight"},
+    {name:"Puliyogare (Tamarind Rice)", desc:"Tangy tamarind-flavoured rice, stays fresh for hours.", veg:true, region:"south", ing:["Cooked rice","Tamarind","Peanuts","Sesame seeds"], cal:260, protein:5, prepTime:15},
+    {name:"Vegetable Khichdi (thick)", desc:"Soft-cooked rice-lentil mix, mild and filling.", veg:true, region:"any", ing:["Rice","Moong dal","Mixed vegetables","Ghee"], cal:250, protein:7, prepTime:20},
+    {name:"Corn & Peas Cutlet Sandwich", desc:"Sweetcorn-peas patty tucked into soft bread.", veg:true, region:"any", ing:["Sweet corn","Green peas","Potato","Bread"], cal:270, protein:7, prepTime:20},
+    {name:"Aloo Tikki Wrap", desc:"Spiced potato patty wrapped in soft roti.", veg:true, region:"north", ing:["Potato","Roti/wrap","Green chutney","Onion"], cal:260, protein:5, prepTime:20},
   ],
   lunch: [
-    {name:"Dal Tadka, Jeera Rice, Roti & Salad", desc:"Everyday tempered lentils with cumin rice and fresh salad.", veg:true, region:"north", ing:["Toor/moong dal","Rice","Cumin","Wheat flour","Salad vegetables"], cal:480, protein:16},
-    {name:"Rajma Chawal", desc:"Kidney bean curry simmered in tomato gravy, served with rice.", veg:true, region:"north", ing:["Rajma (kidney beans)","Onion","Tomato","Rice"], cal:450, protein:15},
-    {name:"Chole with Rice", desc:"Spiced chickpea curry, a weekend favourite.", veg:true, region:"north", ing:["Chickpeas (chole)","Onion","Tomato","Chole masala","Rice"], cal:470, protein:14},
-    {name:"Sambar, Rice & Poriyal", desc:"Lentil-vegetable stew with rice and a stir-fried side vegetable.", veg:true, region:"south", ing:["Toor dal","Sambar powder","Mixed vegetables","Rice"], cal:420, protein:13},
-    {name:"Kadhi Chawal", desc:"Tangy yogurt-gram flour curry with steamed rice.", veg:true, region:"north", ing:["Curd","Gram flour (besan)","Rice","Curry leaves"], cal:400, protein:11},
-    {name:"Mixed Vegetable Curry with Roti", desc:"Seasonal vegetables in a light onion-tomato gravy.", veg:true, region:"any", ing:["Seasonal vegetables","Onion","Tomato","Wheat flour"], cal:380, protein:10},
-    {name:"Bhindi Masala, Dal & Roti", desc:"Stir-fried okra with lentils and flatbread.", veg:true, region:"north", ing:["Okra (bhindi)","Onion","Toor dal","Wheat flour"], cal:420, protein:14},
-    {name:"Baingan Bharta with Roti", desc:"Smoky mashed eggplant curry, a classic pairing with roti.", veg:true, region:"north", ing:["Eggplant (baingan)","Onion","Tomato","Wheat flour"], cal:350, protein:9},
-    {name:"Palak Paneer with Roti", desc:"Cottage cheese cubes in a spiced spinach gravy.", veg:true, region:"north", ing:["Spinach (palak)","Paneer","Onion","Wheat flour"], cal:430, protein:16},
-    {name:"Chicken Curry with Rice", desc:"Home-style chicken curry simmered with everyday spices.", veg:false, region:"any", ing:["Chicken","Onion","Tomato","Ginger-garlic","Rice"], cal:520, protein:30},
-    {name:"Fish Curry with Rice", desc:"Coastal-style fish curry in a tangy coconut base.", veg:false, region:"south", ing:["Fish","Coconut","Tamarind","Curry leaves","Rice"], cal:460, protein:26},
-    {name:"Egg Curry with Roti", desc:"Boiled eggs simmered in a spiced onion-tomato gravy.", veg:false, region:"any", ing:["Eggs","Onion","Tomato","Wheat flour"], cal:420, protein:18},
-    {name:"Kadai Paneer with Roti", desc:"Paneer and peppers tossed in a bold kadai masala.", veg:true, region:"north", ing:["Paneer","Capsicum","Onion","Kadai masala"], cal:440, protein:17},
-    {name:"Gobi Aloo, Dal & Roti", desc:"Cauliflower-potato dry sabzi with lentils and flatbread.", veg:true, region:"north", ing:["Cauliflower","Potato","Toor dal","Wheat flour"], cal:400, protein:12},
-    {name:"Curd Rice, Pickle & Papad", desc:"A light, cooling lunch for a warm afternoon.", veg:true, region:"south", ing:["Cooked rice","Curd","Pickle","Papad"], cal:320, protein:8},
-    {name:"Vegetable Pulao with Raita", desc:"One-pot spiced rice with mixed vegetables and cooling yogurt.", veg:true, region:"any", ing:["Rice","Mixed vegetables","Whole spices","Curd"], cal:400, protein:9},
-    {name:"Mutton Curry with Rice", desc:"Slow-cooked mutton curry, a weekend indulgence.", veg:false, region:"any", ing:["Mutton","Onion","Tomato","Whole spices","Rice"], cal:550, protein:28},
-    {name:"Aloo Gobi with Dal & Roti", desc:"Classic potato-cauliflower dry sabzi with lentils.", veg:true, region:"north", ing:["Potato","Cauliflower","Toor dal","Wheat flour"], cal:400, protein:12},
-    {name:"Prawn Curry with Rice", desc:"Coconut-based coastal prawn curry.", veg:false, region:"south", ing:["Prawns","Coconut","Curry leaves","Rice"], cal:440, protein:24},
-    {name:"Varan Bhaat with Tup & Papad", desc:"Maharashtrian everyday dal-rice with a spoon of ghee and crisp papad.", veg:true, region:"west", ing:["Toor dal","Rice","Ghee","Papad"], cal:400, protein:12},
-    {name:"Pithla Bhakri", desc:"Spiced gram-flour curry with jowar or bajra flatbread — a Maharashtrian staple.", veg:true, region:"west", ing:["Gram flour (besan)","Jowar/bajra flour","Onion","Garlic"], cal:380, protein:12},
-    {name:"Zunka Bhakri with Salad", desc:"Dry spiced gram-flour crumble served with bhakri and raw onion.", veg:true, region:"west", ing:["Gram flour (besan)","Jowar/bajra flour","Onion","Green chilli"], cal:360, protein:11},
+    {name:"Dal Tadka, Jeera Rice, Roti & Salad", desc:"Everyday tempered lentils with cumin rice and fresh salad.", veg:true, region:"north", ing:["Toor/moong dal","Rice","Cumin","Wheat flour","Salad vegetables"], cal:480, protein:16, prepTime:35},
+    {name:"Rajma Chawal", desc:"Kidney bean curry simmered in tomato gravy, served with rice.", veg:true, region:"north", ing:["Rajma (kidney beans)","Onion","Tomato","Rice"], cal:450, protein:15, prepTime:40, prepAhead:"Soak rajma (kidney beans) overnight"},
+    {name:"Chole with Rice", desc:"Spiced chickpea curry, a weekend favourite.", veg:true, region:"north", ing:["Chickpeas (chole)","Onion","Tomato","Chole masala","Rice"], cal:470, protein:14, prepTime:40, prepAhead:"Soak chickpeas overnight"},
+    {name:"Sambar, Rice & Poriyal", desc:"Lentil-vegetable stew with rice and a stir-fried side vegetable.", veg:true, region:"south", ing:["Toor dal","Sambar powder","Mixed vegetables","Rice"], cal:420, protein:13, prepTime:35},
+    {name:"Kadhi Chawal", desc:"Tangy yogurt-gram flour curry with steamed rice.", veg:true, region:"north", ing:["Curd","Gram flour (besan)","Rice","Curry leaves"], cal:400, protein:11, prepTime:30},
+    {name:"Mixed Vegetable Curry with Roti", desc:"Seasonal vegetables in a light onion-tomato gravy.", veg:true, region:"any", ing:["Seasonal vegetables","Onion","Tomato","Wheat flour"], cal:380, protein:10, prepTime:30},
+    {name:"Bhindi Masala, Dal & Roti", desc:"Stir-fried okra with lentils and flatbread.", veg:true, region:"north", ing:["Okra (bhindi)","Onion","Toor dal","Wheat flour"], cal:420, protein:14, prepTime:35},
+    {name:"Baingan Bharta with Roti", desc:"Smoky mashed eggplant curry, a classic pairing with roti.", veg:true, region:"north", ing:["Eggplant (baingan)","Onion","Tomato","Wheat flour"], cal:350, protein:9, prepTime:30},
+    {name:"Palak Paneer with Roti", desc:"Cottage cheese cubes in a spiced spinach gravy.", veg:true, region:"north", ing:["Spinach (palak)","Paneer","Onion","Wheat flour"], cal:430, protein:16, prepTime:35},
+    {name:"Chicken Curry with Rice", desc:"Home-style chicken curry simmered with everyday spices.", veg:false, region:"any", ing:["Chicken","Onion","Tomato","Ginger-garlic","Rice"], cal:520, protein:30, prepTime:45},
+    {name:"Fish Curry with Rice", desc:"Coastal-style fish curry in a tangy coconut base.", veg:false, region:"south", ing:["Fish","Coconut","Tamarind","Curry leaves","Rice"], cal:460, protein:26, prepTime:35},
+    {name:"Egg Curry with Roti", desc:"Boiled eggs simmered in a spiced onion-tomato gravy.", veg:false, region:"any", ing:["Eggs","Onion","Tomato","Wheat flour"], cal:420, protein:18, prepTime:25},
+    {name:"Kadai Paneer with Roti", desc:"Paneer and peppers tossed in a bold kadai masala.", veg:true, region:"north", ing:["Paneer","Capsicum","Onion","Kadai masala"], cal:440, protein:17, prepTime:30},
+    {name:"Gobi Aloo, Dal & Roti", desc:"Cauliflower-potato dry sabzi with lentils and flatbread.", veg:true, region:"north", ing:["Cauliflower","Potato","Toor dal","Wheat flour"], cal:400, protein:12, prepTime:30},
+    {name:"Curd Rice, Pickle & Papad", desc:"A light, cooling lunch for a warm afternoon.", veg:true, region:"south", ing:["Cooked rice","Curd","Pickle","Papad"], cal:320, protein:8, prepTime:10},
+    {name:"Vegetable Pulao with Raita", desc:"One-pot spiced rice with mixed vegetables and cooling yogurt.", veg:true, region:"any", ing:["Rice","Mixed vegetables","Whole spices","Curd"], cal:400, protein:9, prepTime:30},
+    {name:"Mutton Curry with Rice", desc:"Slow-cooked mutton curry, a weekend indulgence.", veg:false, region:"any", ing:["Mutton","Onion","Tomato","Whole spices","Rice"], cal:550, protein:28, prepTime:60, prepAhead:"Marinate mutton a few hours ahead (overnight for best flavour)"},
+    {name:"Aloo Gobi with Dal & Roti", desc:"Classic potato-cauliflower dry sabzi with lentils.", veg:true, region:"north", ing:["Potato","Cauliflower","Toor dal","Wheat flour"], cal:400, protein:12, prepTime:30},
+    {name:"Prawn Curry with Rice", desc:"Coconut-based coastal prawn curry.", veg:false, region:"south", ing:["Prawns","Coconut","Curry leaves","Rice"], cal:440, protein:24, prepTime:30},
+    {name:"Varan Bhaat with Tup & Papad", desc:"Maharashtrian everyday dal-rice with a spoon of ghee and crisp papad.", veg:true, region:"west", ing:["Toor dal","Rice","Ghee","Papad"], cal:400, protein:12, prepTime:25},
+    {name:"Pithla Bhakri", desc:"Spiced gram-flour curry with jowar or bajra flatbread — a Maharashtrian staple.", veg:true, region:"west", ing:["Gram flour (besan)","Jowar/bajra flour","Onion","Garlic"], cal:380, protein:12, prepTime:20},
+    {name:"Zunka Bhakri with Salad", desc:"Dry spiced gram-flour crumble served with bhakri and raw onion.", veg:true, region:"west", ing:["Gram flour (besan)","Jowar/bajra flour","Onion","Green chilli"], cal:360, protein:11, prepTime:20},
   ],
   dinner: [
-    {name:"Khichdi with Kadhi", desc:"Light rice-lentil khichdi with tangy yogurt curry — easy on digestion.", veg:true, region:"any", ing:["Rice","Moong dal","Curd","Gram flour"], cal:320, protein:10},
-    {name:"Vegetable Soup with Grilled Sandwich", desc:"A light, warm option for a low-key dinner.", veg:true, region:"any", ing:["Mixed vegetables","Bread","Cheese/butter"], cal:280, protein:9},
-    {name:"Roti, Dal & Light Sabzi", desc:"Simple everyday combination, easy to make after a long day.", veg:true, region:"north", ing:["Wheat flour","Toor/moong dal","Seasonal vegetable"], cal:350, protein:12},
-    {name:"Paneer Bhurji with Roti", desc:"Scrambled spiced paneer, quick to put together.", veg:true, region:"north", ing:["Paneer","Onion","Tomato","Wheat flour"], cal:380, protein:15},
-    {name:"Vegetable Pulao", desc:"One-pot rice with vegetables, needs no extra side.", veg:true, region:"any", ing:["Rice","Mixed vegetables","Whole spices"], cal:340, protein:7},
-    {name:"Moong Dal Khichdi", desc:"Light, protein-rich khichdi, gentle on the stomach at night.", veg:true, region:"any", ing:["Rice","Split moong dal","Cumin","Ghee"], cal:300, protein:12},
-    {name:"Egg Curry with Roti", desc:"Simple egg curry, quicker than a meat-based one.", veg:false, region:"any", ing:["Eggs","Onion","Tomato","Wheat flour"], cal:400, protein:17},
-    {name:"Chicken Stew with Rice", desc:"Mild coconut-based stew, comforting for dinner.", veg:false, region:"south", ing:["Chicken","Coconut milk","Potato","Rice"], cal:420, protein:22},
-    {name:"Mixed Dal with Roti", desc:"A blend of lentils cooked simply with roti.", veg:true, region:"any", ing:["Mixed lentils","Onion","Tomato","Wheat flour"], cal:340, protein:13},
-    {name:"Vegetable Stir-fry with Roti", desc:"Quick tossed vegetables with light seasoning.", veg:true, region:"any", ing:["Seasonal vegetables","Garlic","Wheat flour"], cal:320, protein:8},
-    {name:"Tomato Soup with Multigrain Toast", desc:"A light finish to the day.", veg:true, region:"any", ing:["Tomato","Garlic","Multigrain bread"], cal:220, protein:6},
-    {name:"Methi Thepla with Curd", desc:"Leftover-friendly flatbread paired with fresh curd.", veg:true, region:"west", ing:["Wheat flour","Fenugreek leaves","Curd"], cal:280, protein:7},
-    {name:"Dal Palak with Rice", desc:"Spinach-lentil curry, nutritious and light.", veg:true, region:"north", ing:["Toor dal","Spinach","Rice"], cal:360, protein:13},
-    {name:"Stuffed Capsicum with Roti", desc:"Bell peppers stuffed with a spiced potato filling.", veg:true, region:"north", ing:["Capsicum","Potato","Spices","Wheat flour"], cal:340, protein:9},
-    {name:"Paneer Tikka with Roti", desc:"Grilled spiced paneer, a lighter tandoor-style dinner.", veg:true, region:"north", ing:["Paneer","Curd","Tikka masala","Wheat flour"], cal:380, protein:16},
-    {name:"Varan Bhaat with Tup", desc:"Light everyday Maharashtrian dal-rice finished with a spoon of ghee.", veg:true, region:"west", ing:["Toor dal","Rice","Ghee"], cal:340, protein:11},
-    {name:"Thalipeeth with Curd", desc:"Multigrain savoury pancake, a light and filling dinner option.", veg:true, region:"west", ing:["Bhajani (multigrain flour)","Onion","Curd"], cal:300, protein:8},
+    {name:"Khichdi with Kadhi", desc:"Light rice-lentil khichdi with tangy yogurt curry — easy on digestion.", veg:true, region:"any", ing:["Rice","Moong dal","Curd","Gram flour"], cal:320, protein:10, prepTime:25},
+    {name:"Vegetable Soup with Grilled Sandwich", desc:"A light, warm option for a low-key dinner.", veg:true, region:"any", ing:["Mixed vegetables","Bread","Cheese/butter"], cal:280, protein:9, prepTime:20},
+    {name:"Roti, Dal & Light Sabzi", desc:"Simple everyday combination, easy to make after a long day.", veg:true, region:"north", ing:["Wheat flour","Toor/moong dal","Seasonal vegetable"], cal:350, protein:12, prepTime:30},
+    {name:"Paneer Bhurji with Roti", desc:"Scrambled spiced paneer, quick to put together.", veg:true, region:"north", ing:["Paneer","Onion","Tomato","Wheat flour"], cal:380, protein:15, prepTime:20},
+    {name:"Vegetable Pulao", desc:"One-pot rice with vegetables, needs no extra side.", veg:true, region:"any", ing:["Rice","Mixed vegetables","Whole spices"], cal:340, protein:7, prepTime:25},
+    {name:"Moong Dal Khichdi", desc:"Light, protein-rich khichdi, gentle on the stomach at night.", veg:true, region:"any", ing:["Rice","Split moong dal","Cumin","Ghee"], cal:300, protein:12, prepTime:20},
+    {name:"Egg Curry with Roti", desc:"Simple egg curry, quicker than a meat-based one.", veg:false, region:"any", ing:["Eggs","Onion","Tomato","Wheat flour"], cal:400, protein:17, prepTime:25},
+    {name:"Chicken Stew with Rice", desc:"Mild coconut-based stew, comforting for dinner.", veg:false, region:"south", ing:["Chicken","Coconut milk","Potato","Rice"], cal:420, protein:22, prepTime:35},
+    {name:"Mixed Dal with Roti", desc:"A blend of lentils cooked simply with roti.", veg:true, region:"any", ing:["Mixed lentils","Onion","Tomato","Wheat flour"], cal:340, protein:13, prepTime:25},
+    {name:"Vegetable Stir-fry with Roti", desc:"Quick tossed vegetables with light seasoning.", veg:true, region:"any", ing:["Seasonal vegetables","Garlic","Wheat flour"], cal:320, protein:8, prepTime:20},
+    {name:"Tomato Soup with Multigrain Toast", desc:"A light finish to the day.", veg:true, region:"any", ing:["Tomato","Garlic","Multigrain bread"], cal:220, protein:6, prepTime:15},
+    {name:"Methi Thepla with Curd", desc:"Leftover-friendly flatbread paired with fresh curd.", veg:true, region:"west", ing:["Wheat flour","Fenugreek leaves","Curd"], cal:280, protein:7, prepTime:20},
+    {name:"Dal Palak with Rice", desc:"Spinach-lentil curry, nutritious and light.", veg:true, region:"north", ing:["Toor dal","Spinach","Rice"], cal:360, protein:13, prepTime:25},
+    {name:"Stuffed Capsicum with Roti", desc:"Bell peppers stuffed with a spiced potato filling.", veg:true, region:"north", ing:["Capsicum","Potato","Spices","Wheat flour"], cal:340, protein:9, prepTime:30},
+    {name:"Paneer Tikka with Roti", desc:"Grilled spiced paneer, a lighter tandoor-style dinner.", veg:true, region:"north", ing:["Paneer","Curd","Tikka masala","Wheat flour"], cal:380, protein:16, prepTime:25},
+    {name:"Varan Bhaat with Tup", desc:"Light everyday Maharashtrian dal-rice finished with a spoon of ghee.", veg:true, region:"west", ing:["Toor dal","Rice","Ghee"], cal:340, protein:11, prepTime:20},
+    {name:"Thalipeeth with Curd", desc:"Multigrain savoury pancake, a light and filling dinner option.", veg:true, region:"west", ing:["Bhajani (multigrain flour)","Onion","Curd"], cal:300, protein:8, prepTime:20},
   ]
 };
 
@@ -408,6 +424,53 @@ const MEAL_META = {
   dinner: {label:"Dinner", icon:"🌙"}
 };
 
+/* ---------------- Home-style base ----------------
+   Most Indian households eat roti/bhakri-dal-rice (or the regional equivalent)
+   on most days, and only the vegetable side actually changes day to day.
+   "Home-style mode" reflects that: lunch & dinner rotate through SABZI (a
+   simple everyday vegetable) instead of a different named combo dish every
+   time, with the constant base shown underneath. */
+const BASE_BY_REGION = {
+  north: "Roti + Dal + Steamed Rice",
+  south: "Rice + Sambar/Rasam + Curd",
+  west:  "Chapati/Bhakri + Varan-Bhaat (Dal-Rice)",
+  east:  "Rice + Dal",
+  any:   "Roti/Rice + Dal"
+};
+
+const SABZI = [
+  // Maharashtrian / West
+  {name:"Vangi Bhaji", desc:"Eggplant cooked Maharashtrian-style with goda masala.", veg:true, region:"west", ing:["Eggplant","Goda masala","Onion","Peanuts"], cal:150, protein:3, prepTime:20},
+  {name:"Batata Bhaji", desc:"Everyday potato bhaji, mustard-curry leaf tempering.", veg:true, region:"west", ing:["Potato","Mustard seeds","Curry leaves","Turmeric"], cal:180, protein:3, prepTime:20},
+  {name:"Bhopla Bhaji", desc:"Pumpkin cooked with a light Maharashtrian tempering.", veg:true, region:"west", ing:["Pumpkin","Goda masala","Peanuts"], cal:120, protein:2, prepTime:20},
+  {name:"Dodka Bhaji", desc:"Ridge gourd, lightly spiced — a quick, easy-digesting sabzi.", veg:true, region:"west", ing:["Ridge gourd","Onion","Garlic"], cal:100, protein:2, prepTime:20},
+  {name:"Gawar Bhaji", desc:"Cluster beans stir-fried with everyday spices.", veg:true, region:"west", ing:["Cluster beans","Onion","Peanuts"], cal:130, protein:4, prepTime:20},
+  {name:"Tondli Bhaji", desc:"Ivy gourd stir-fry, a common weekday sabzi.", veg:true, region:"west", ing:["Ivy gourd (tondli)","Onion","Garlic"], cal:140, protein:3, prepTime:20},
+  {name:"Matki Usal", desc:"Sprouted moth bean curry, protein-rich and everyday-easy.", veg:true, region:"west", ing:["Sprouted moth beans (matki)","Onion","Goda masala"], cal:220, protein:11, prepTime:25, prepAhead:"Sprout moth beans (matki) 1-2 days ahead"},
+  {name:"Val Bhaji", desc:"Field beans curry made with soaked dried vaal.", veg:true, region:"west", ing:["Dried field beans (vaal)","Onion","Goda masala"], cal:200, protein:9, prepTime:25, prepAhead:"Soak dried vaal overnight"},
+  // North
+  {name:"Aloo Matar", desc:"Everyday potato-peas curry.", veg:true, region:"north", ing:["Potato","Green peas","Tomato","Cumin"], cal:200, protein:5, prepTime:20},
+  {name:"Lauki Sabzi", desc:"Bottle gourd cooked simply with everyday spices.", veg:true, region:"north", ing:["Bottle gourd","Cumin","Tomato"], cal:120, protein:3, prepTime:20},
+  {name:"Gobi Matar", desc:"Cauliflower-peas dry sabzi.", veg:true, region:"north", ing:["Cauliflower","Green peas","Cumin"], cal:170, protein:5, prepTime:20},
+  {name:"Karela Sabzi", desc:"Bitter gourd stir-fry, a well-loved everyday side.", veg:true, region:"north", ing:["Bitter gourd (karela)","Onion","Besan"], cal:130, protein:3, prepTime:20},
+  {name:"Methi Aloo", desc:"Fenugreek leaves cooked with potato.", veg:true, region:"north", ing:["Fenugreek leaves (methi)","Potato","Cumin"], cal:160, protein:4, prepTime:20},
+  // South
+  {name:"Beans Poriyal", desc:"French beans stir-fried with coconut.", veg:true, region:"south", ing:["French beans","Coconut","Mustard seeds"], cal:130, protein:4, prepTime:15},
+  {name:"Cabbage Poriyal", desc:"Cabbage stir-fried with coconut and curry leaves.", veg:true, region:"south", ing:["Cabbage","Coconut","Curry leaves"], cal:110, protein:3, prepTime:15},
+  {name:"Avial", desc:"Mixed vegetables in a coconut-yogurt gravy.", veg:true, region:"south", ing:["Mixed vegetables","Coconut","Curd"], cal:180, protein:5, prepTime:25},
+  {name:"Vazhakkai Curry", desc:"Raw banana curry, a South Indian everyday side.", veg:true, region:"south", ing:["Raw banana","Coconut","Mustard seeds"], cal:160, protein:3, prepTime:20},
+  // East
+  {name:"Aloo Posto", desc:"Potatoes in a mild poppy-seed paste, a Bengali staple.", veg:true, region:"east", ing:["Potato","Poppy seeds (posto)","Green chilli"], cal:190, protein:4, prepTime:20},
+  {name:"Shukto", desc:"Mixed vegetable stew with a gentle bitter note.", veg:true, region:"east", ing:["Mixed vegetables","Bitter gourd","Ginger","Milk"], cal:140, protein:4, prepTime:25},
+  {name:"Chorchori", desc:"Mashed mixed-vegetable sabzi, cooked slow and simple.", veg:true, region:"east", ing:["Mixed vegetables","Panch phoron","Mustard oil"], cal:150, protein:4, prepTime:20},
+  // Any / pan-India
+  {name:"Palak Bhaji", desc:"Simple spinach stir-fry, quick and light.", veg:true, region:"any", ing:["Spinach","Garlic","Onion"], cal:110, protein:4, prepTime:15},
+  {name:"Mixed Seasonal Sabzi", desc:"Whatever vegetables are on hand, cooked simply.", veg:true, region:"any", ing:["Seasonal vegetables","Onion","Everyday spices"], cal:150, protein:4, prepTime:20},
+];
+function baseLineFor(region){
+  return BASE_BY_REGION[region] || BASE_BY_REGION.any;
+}
+
 /* ---------------- Weekend & festival "treat" pool ----------------
    Only surfaces when the "Add weekend & festival specials" checkbox is on,
    and only on Saturdays/Sundays or days already flagged with a festival/holiday
@@ -415,20 +478,20 @@ const MEAL_META = {
    dinner isn't being planned) per qualifying day. */
 const TREATS = {
   lunch: [
-    {name:"Pani Puri", desc:"Crisp hollow puris with spiced tamarind water — a Mumbai street-food classic.", veg:true, region:"west", ing:["Puri shells","Tamarind water","Boiled potato","Sprouts"], cal:280, protein:6},
-    {name:"Bhel Puri", desc:"Puffed rice tossed with chutneys, onion, and crunchy sev.", veg:true, region:"west", ing:["Puffed rice","Sev","Onion","Tamarind chutney"], cal:260, protein:5},
-    {name:"Sev Puri", desc:"Crisp puris topped with potato, chutneys, onion & sev.", veg:true, region:"west", ing:["Puri shells","Potato","Chutneys","Sev"], cal:270, protein:5},
-    {name:"Vada Pav", desc:"Mumbai's favourite — spiced potato fritter in a soft pav with chutneys.", veg:true, region:"west", ing:["Potato","Gram flour (besan)","Pav (bread roll)","Garlic chutney"], cal:340, protein:8},
-    {name:"Ragda Pattice", desc:"Shallow-fried potato patties served over spiced white-pea curry.", veg:true, region:"west", ing:["Potato patties","White peas (ragda)","Chutneys","Onion"], cal:360, protein:10},
-    {name:"Kolhapuri Misal Pav", desc:"Spicy sprouted-moth-bean curry topped with farsan, served with pav.", veg:true, region:"west", ing:["Mixed sprouts","Misal masala","Pav (bread roll)","Farsan"], cal:460, protein:16},
+    {name:"Pani Puri", desc:"Crisp hollow puris with spiced tamarind water — a Mumbai street-food classic.", veg:true, region:"west", ing:["Puri shells","Tamarind water","Boiled potato","Sprouts"], cal:280, protein:6, prepTime:20},
+    {name:"Bhel Puri", desc:"Puffed rice tossed with chutneys, onion, and crunchy sev.", veg:true, region:"west", ing:["Puffed rice","Sev","Onion","Tamarind chutney"], cal:260, protein:5, prepTime:10},
+    {name:"Sev Puri", desc:"Crisp puris topped with potato, chutneys, onion & sev.", veg:true, region:"west", ing:["Puri shells","Potato","Chutneys","Sev"], cal:270, protein:5, prepTime:15},
+    {name:"Vada Pav", desc:"Mumbai's favourite — spiced potato fritter in a soft pav with chutneys.", veg:true, region:"west", ing:["Potato","Gram flour (besan)","Pav (bread roll)","Garlic chutney"], cal:340, protein:8, prepTime:25},
+    {name:"Ragda Pattice", desc:"Shallow-fried potato patties served over spiced white-pea curry.", veg:true, region:"west", ing:["Potato patties","White peas (ragda)","Chutneys","Onion"], cal:360, protein:10, prepTime:30},
+    {name:"Kolhapuri Misal Pav", desc:"Spicy sprouted-moth-bean curry topped with farsan, served with pav.", veg:true, region:"west", ing:["Mixed sprouts","Misal masala","Pav (bread roll)","Farsan"], cal:460, protein:16, prepTime:20, prepAhead:"Sprout moth beans 1-2 days ahead"},
   ],
   dinner: [
-    {name:"Homemade Cheese Pizza", desc:"Weekend-treat pizza with tomato base, cheese & veggie toppings.", veg:true, region:"any", ing:["Pizza base","Cheese","Tomato sauce","Mixed vegetables"], cal:480, protein:16},
-    {name:"Cheesy Veg Pasta", desc:"Kid-favourite pasta in a creamy or tomato sauce with vegetables.", veg:true, region:"any", ing:["Pasta","Cheese","Mixed vegetables","Tomato/white sauce"], cal:460, protein:14},
-    {name:"Maggi Noodles with Veggies", desc:"Quick masala noodles loaded with vegetables — always a hit with kids.", veg:true, region:"any", ing:["Instant noodles","Mixed vegetables","Masala"], cal:380, protein:9},
-    {name:"Veg / Cheese Burger", desc:"Pan-grilled patty burger with cheese, lettuce & sauces.", veg:true, region:"any", ing:["Burger bun","Veg/cheese patty","Lettuce","Sauces"], cal:450, protein:13},
-    {name:"Mumbai Pav Bhaji", desc:"Buttery mashed mixed-vegetable curry served with toasted pav.", veg:true, region:"west", ing:["Mixed vegetables","Pav bhaji masala","Butter","Pav (bread roll)"], cal:480, protein:11},
-    {name:"Mumbai Frankie Roll", desc:"Spiced potato or paneer filling rolled in a soft paratha wrap.", veg:true, region:"west", ing:["Paratha wrap","Paneer/potato filling","Onion","Chutney"], cal:420, protein:12},
+    {name:"Homemade Cheese Pizza", desc:"Weekend-treat pizza with tomato base, cheese & veggie toppings.", veg:true, region:"any", ing:["Pizza base","Cheese","Tomato sauce","Mixed vegetables"], cal:480, protein:16, prepTime:35},
+    {name:"Cheesy Veg Pasta", desc:"Kid-favourite pasta in a creamy or tomato sauce with vegetables.", veg:true, region:"any", ing:["Pasta","Cheese","Mixed vegetables","Tomato/white sauce"], cal:460, protein:14, prepTime:20},
+    {name:"Maggi Noodles with Veggies", desc:"Quick masala noodles loaded with vegetables — always a hit with kids.", veg:true, region:"any", ing:["Instant noodles","Mixed vegetables","Masala"], cal:380, protein:9, prepTime:10},
+    {name:"Veg / Cheese Burger", desc:"Pan-grilled patty burger with cheese, lettuce & sauces.", veg:true, region:"any", ing:["Burger bun","Veg/cheese patty","Lettuce","Sauces"], cal:450, protein:13, prepTime:20},
+    {name:"Mumbai Pav Bhaji", desc:"Buttery mashed mixed-vegetable curry served with toasted pav.", veg:true, region:"west", ing:["Mixed vegetables","Pav bhaji masala","Butter","Pav (bread roll)"], cal:480, protein:11, prepTime:30},
+    {name:"Mumbai Frankie Roll", desc:"Spiced potato or paneer filling rolled in a soft paratha wrap.", veg:true, region:"west", ing:["Paratha wrap","Paneer/potato filling","Onion","Chutney"], cal:420, protein:12, prepTime:20},
   ]
 };
 
@@ -436,11 +499,11 @@ const TREATS = {
    When a plan day carries one of these festival tags, its dinner (or lunch,
    if dinner isn't being planned) is swapped for the matching seasonal dish. */
 const FESTIVAL_SPECIALS = {
-  "Ganesh Chaturthi": {name:"Ukadiche Modak", desc:"Steamed rice-flour dumplings filled with jaggery & coconut — the Ganpati festive special.", veg:true, region:"west", ing:["Rice flour","Jaggery","Fresh coconut","Cardamom"], cal:320, protein:4},
-  "Holi": {name:"Puran Poli", desc:"Sweet flatbread stuffed with a jaggery-chana dal filling, a Holi & Gudi Padwa favourite.", veg:true, region:"west", ing:["Chana dal","Jaggery","Wheat flour","Ghee"], cal:380, protein:8},
-  "Gudi Padwa": {name:"Puran Poli with Katachi Amti", desc:"Sweet jaggery-dal stuffed flatbread served with a tangy dal broth — the Gudi Padwa spread.", veg:true, region:"west", ing:["Chana dal","Jaggery","Wheat flour","Katachi amti"], cal:420, protein:10},
-  "Makar Sankranti": {name:"Til-Gul Ladoo with Khichdi", desc:"Sesame-jaggery sweets alongside the traditional Sankranti khichdi.", veg:true, region:"west", ing:["Sesame seeds (til)","Jaggery (gul)","Rice","Moong dal"], cal:400, protein:9},
-  "Diwali": {name:"Diwali Faral Platter", desc:"An assorted plate of chivda, chakli & ladoo — the classic Diwali spread.", veg:true, region:"west", ing:["Poha (chivda)","Besan (chakli)","Jaggery/sugar (ladoo)"], cal:420, protein:7},
+  "Ganesh Chaturthi": {name:"Ukadiche Modak", desc:"Steamed rice-flour dumplings filled with jaggery & coconut — the Ganpati festive special.", veg:true, region:"west", ing:["Rice flour","Jaggery","Fresh coconut","Cardamom"], cal:320, protein:4, prepTime:45},
+  "Holi": {name:"Puran Poli", desc:"Sweet flatbread stuffed with a jaggery-chana dal filling, a Holi & Gudi Padwa favourite.", veg:true, region:"west", ing:["Chana dal","Jaggery","Wheat flour","Ghee"], cal:380, protein:8, prepTime:40},
+  "Gudi Padwa": {name:"Puran Poli with Katachi Amti", desc:"Sweet jaggery-dal stuffed flatbread served with a tangy dal broth — the Gudi Padwa spread.", veg:true, region:"west", ing:["Chana dal","Jaggery","Wheat flour","Katachi amti"], cal:420, protein:10, prepTime:45},
+  "Makar Sankranti": {name:"Til-Gul Ladoo with Khichdi", desc:"Sesame-jaggery sweets alongside the traditional Sankranti khichdi.", veg:true, region:"west", ing:["Sesame seeds (til)","Jaggery (gul)","Rice","Moong dal"], cal:400, protein:9, prepTime:30},
+  "Diwali": {name:"Diwali Faral Platter", desc:"An assorted plate of chivda, chakli & ladoo — the classic Diwali spread.", veg:true, region:"west", ing:["Poha (chivda)","Besan (chakli)","Jaggery/sugar (ladoo)"], cal:420, protein:7, prepTime:40},
 };
 const FASTING_KEYWORDS = ["Ekadashi","Chaturthi","Purnima","Amavasya"];
 
@@ -516,9 +579,15 @@ function buildDates(){
 }
 
 /* ---------------- Recipe pool helpers ---------------- */
+function isHomeStyle(){ return document.getElementById('homeStyle').checked; }
 function filteredPool(mealType){
   const diet = document.getElementById('diet').value;
   const region = document.getElementById('region').value;
+  if((mealType === 'lunch' || mealType === 'dinner') && isHomeStyle()){
+    return SABZI
+      .filter(r => region === 'any' ? true : (r.region === region || r.region === 'any'))
+      .map(r => Object.assign({}, r, {isSabzi:true}));
+  }
   return DB[mealType].filter(r=>{
     const dietOk = diet === 'veg' ? r.veg : true;
     const regionOk = region === 'any' ? true : (r.region === region || r.region === 'any');
@@ -560,6 +629,47 @@ function fastPool(mealType){
 /* Applies festival specials, fasting-day picks, and (if enabled) weekend/festival
    treats to the appropriate day/slot in currentPlan. Runs once right after the
    week is generated; each slot can still be shuffled by hand afterwards. */
+/* In home-style mode, veg+non-veg households still want an occasional
+   "meat/egg/fish day" — pick one day per active meal (lunch/dinner) for a
+   full non-veg dish from the regular database instead of a sabzi. Skipped
+   entirely for veg-only households. */
+function applyProteinDays(){
+  if(!isHomeStyle()) return;
+  if(document.getElementById('diet').value !== 'both') return;
+  const region = document.getElementById('region').value;
+  ['lunch','dinner'].forEach(mealType=>{
+    if(!activeMeals.includes(mealType)) return;
+    const nonVegPool = DB[mealType].filter(r => !r.veg && (region === 'any' || r.region === region || r.region === 'any'));
+    if(nonVegPool.length === 0) return;
+    const dayIdx = Math.floor(Math.random()*7);
+    const pick = nonVegPool[Math.floor(Math.random()*nonVegPool.length)];
+    currentPlan[mealType][dayIdx] = Object.assign({}, pick, {badge:'protein'});
+  });
+}
+
+/* Builds a same-evening / today reminder list for any dish that needs advance
+   prep (soaking, fermenting, sprouting, marinating). Keyed by the day index on
+   which the reminder should be shown. */
+let dayReminders = {};
+function computeReminders(){
+  dayReminders = {};
+  activeMeals.forEach(mealType=>{
+    const meta = MEAL_META[mealType];
+    currentPlan[mealType].forEach((recipe, dayIdx)=>{
+      if(!recipe.prepAhead) return;
+      if(dayIdx === 0){
+        if(!dayReminders[0]) dayReminders[0] = [];
+        dayReminders[0].push({urgent:true, text:`${meta.icon} Today's ${meta.label.toLowerCase()} (${recipe.name}) needs: ${recipe.prepAhead}`});
+      } else {
+        const t = dayIdx - 1;
+        if(!dayReminders[t]) dayReminders[t] = [];
+        dayReminders[t].push({urgent:false, text:`${meta.icon} Tomorrow's ${meta.label.toLowerCase()} (${recipe.name}) needs: ${recipe.prepAhead}`});
+      }
+    });
+  });
+}
+
+
 function applyDayOverrides(){
   const funOn = document.getElementById('funSpecials').checked;
   // preferred meal slot to override, in order of what's actually active
@@ -636,6 +746,7 @@ function render(){
         <button class="day-note-btn" data-day="${dayIdx}">${note ? '✏️ edit note' : '+ add note'}</button>
       </div>
       ${note !== undefined ? `<input class="day-note-input" data-daynote="${dayIdx}" value="${note.replace(/"/g,'&quot;')}" placeholder="e.g. India match tonight, guests coming, fasting day...">` : ''}
+      ${dayReminders[dayIdx] ? `<div class="reminder-banner">${dayReminders[dayIdx].map(r=>`<div class="${r.urgent?'urgent':''}">${r.urgent?'⚠️':'🔔'} ${r.text}</div>`).join('')}</div>` : ''}
     `;
     const pattern = PATTERNS[document.getElementById('pattern').value];
     let dayCal = 0;
@@ -647,8 +758,9 @@ function render(){
       const dispCal = Math.round(recipe.cal * mult);
       const dispProtein = Math.round(recipe.protein * mult);
       dayCal += dispCal;
-      const badgeMap = {festival:'🎊 Festival special', fasting:'🙏 Fasting-friendly', treat:'🎉 Weekend treat'};
+      const badgeMap = {festival:'🎊 Festival special', fasting:'🙏 Fasting-friendly', treat:'🎉 Weekend treat', protein:'🍗 Non-veg day'};
       const badgeHtml = recipe.badge ? `<span class="special-badge ${recipe.badge}">${badgeMap[recipe.badge]}</span>` : '';
+      const baseLineHtml = recipe.isSabzi ? `<p class="base-line">🍽️ Served with: ${baseLineFor(document.getElementById('region').value)}</p>` : '';
       html += `
         <div class="meal-row">
           <div class="meal-label"><span class="meal-icon">${meta.icon}</span><span class="txt">${meta.label}</span></div>
@@ -656,8 +768,11 @@ function render(){
             <p class="recipe-name">${recipe.name} ${badgeHtml}</p>
             <p class="recipe-desc">${recipe.desc}</p>
             <p class="recipe-ingredients"><b>Main ingredients:</b> ${recipe.ing.join(', ')}</p>
+            ${baseLineHtml}
+            ${recipe.prepAhead ? `<p class="prep-ahead-note">⏳ <b>Prep ahead:</b> ${recipe.prepAhead}</p>` : ''}
             <div class="recipe-meta-row">
               <span class="recipe-meta">${recipe.veg ? 'Veg' : 'Non-veg'} · ${recipe.region === 'any' ? 'Pan-India' : recipe.region.charAt(0).toUpperCase()+recipe.region.slice(1)+' Indian'}</span>
+              <span class="time-tag">⏱ ~${recipe.prepTime || 20} min</span>
               <span class="nutri-tag">🔥 ~${dispCal} kcal · 💪 ${dispProtein}g protein</span>
               <span class="portion-tag portion-${mult<=0.8?'light':mult>=1.15?'full':'reg'}">${portionTag(mult)}</span>
               <a class="recipe-link" href="${link}" target="_blank" rel="noopener">🔗 View recipe</a>
@@ -680,6 +795,7 @@ function render(){
       const day = parseInt(btn.dataset.day,10);
       const current = currentPlan[mealType][day];
       currentPlan[mealType][day] = pickOne(mealType, current.name);
+      computeReminders();
       render();
     });
   });
@@ -712,7 +828,9 @@ function generatePlan(){
   buildDates();
   currentPlan = {};
   activeMeals.forEach(mealType=>{ currentPlan[mealType] = pickWeek(mealType); });
+  applyProteinDays();
   applyDayOverrides();
+  computeReminders();
   dayNotes = {};
   render();
 }
@@ -733,19 +851,24 @@ function planAsText(){
   const kids = document.getElementById('kids').value;
   const servingText = parseInt(kids,10) > 0 ? `~${adults} adults + ${kids} kid${kids==1?'':'s'}` : `~${adults} adults`;
   const pattern = PATTERNS[document.getElementById('pattern').value];
+  const region = document.getElementById('region').value;
   let lines = [`🍛 *Weekly Meal Plan* (for ${servingText} · ${document.getElementById('pattern').selectedOptions[0].text})\n`];
   planDates.forEach((d, dayIdx)=>{
     const key = fmtKey(d);
     const tag = EVENTS[key] ? `  [${EVENTS[key]}]` : '';
     const note = dayNotes[key] ? `  (${dayNotes[key]})` : '';
     lines.push(`*${d.toLocaleDateString('en-IN',{weekday:'long'})}, ${d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}*${tag}${note}`);
+    if(dayReminders[dayIdx]){
+      dayReminders[dayIdx].forEach(r => lines.push(`  ${r.urgent ? '⚠️' : '🔔'} ${r.text}`));
+    }
     let dayCal = 0;
     activeMeals.forEach(mealType=>{
       const recipe = currentPlan[mealType][dayIdx];
       const mult = pattern[mealType];
       const dispCal = Math.round(recipe.cal * mult);
       dayCal += dispCal;
-      lines.push(`  ${MEAL_META[mealType].icon} ${MEAL_META[mealType].label}: ${recipe.name} (~${dispCal} kcal)`);
+      const withBase = recipe.isSabzi ? ` + ${baseLineFor(region)}` : '';
+      lines.push(`  ${MEAL_META[mealType].icon} ${MEAL_META[mealType].label}: ${recipe.name}${withBase} (~${recipe.prepTime||20} min, ~${dispCal} kcal)`);
     });
     lines.push(`  Day total: ~${dayCal} kcal`);
     lines.push('');
@@ -803,6 +926,9 @@ document.getElementById('pattern').addEventListener('change', ()=>{
   if(Object.keys(currentPlan).length) render();
 });
 document.getElementById('funSpecials').addEventListener('change', ()=>{
+  if(Object.keys(currentPlan).length) generatePlan();
+});
+document.getElementById('homeStyle').addEventListener('change', ()=>{
   if(Object.keys(currentPlan).length) generatePlan();
 });
 
