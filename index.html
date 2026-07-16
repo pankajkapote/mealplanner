@@ -149,7 +149,7 @@
   .day-note-btn{ border:none; background:transparent; cursor:pointer; font-size:13px; color: var(--turmeric); font-weight:700; }
   .day-note-input{ width:100%; margin: 0 16px 10px; padding:6px 10px; border-radius:8px; border:1.5px dashed var(--rule); font-size:12px; font-family:'Karla'; background: #FFFCF5; }
 
-  .meal-row{ display:grid; grid-template-columns: 120px 1fr 34px; gap: 0; align-items:start; border-bottom: 1px dashed var(--rule); }
+  .meal-row{ display:grid; grid-template-columns: 120px 1fr; gap: 0; align-items:start; border-bottom: 1px dashed var(--rule); }
   .meal-row:last-child{ border-bottom:none; }
   .meal-label{ display:flex; align-items:center; gap:8px; padding: 12px 14px; font-size: 12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color: var(--ink-soft); border-right: 1px solid var(--rule); height: 100%; }
   .meal-icon{ font-size:16px; }
@@ -170,8 +170,20 @@
   .recipe-link:hover{ color: var(--chili); border-color: var(--chili); }
   .copy-link-btn{ font-size:11px; font-weight:700; color: var(--ink-soft); background:none; border:none; cursor:pointer; padding:0; }
   .copy-link-btn:hover{ color: var(--chili); }
-  .shuffle-btn{ width:34px; height:34px; border:none; background:transparent; cursor:pointer; font-size:16px; color: var(--turmeric); display:flex; align-items:center; justify-content:center; }
-  .shuffle-btn:hover{ color: var(--chili); transform: rotate(25deg); }
+  .swap-btn{
+    margin: 10px 0 12px;
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'Karla'; font-size:12.5px; font-weight:700;
+    color: var(--chili-deep);
+    background: var(--turmeric-soft);
+    border: 1.5px solid var(--turmeric);
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: background .15s, transform .1s;
+  }
+  .swap-btn:hover{ background:#F5C77E; }
+  .swap-btn:active{ transform: scale(0.96); }
 
   .empty-state{ text-align:center; padding: 50px 20px; color: var(--ink-soft); background: var(--card); border: 1.5px dashed var(--rule); border-radius: var(--radius); }
 
@@ -204,10 +216,10 @@
   @media print{
     .setup, .footer-actions, header .tagline, .day-note-btn{ display:none; }
     body{ background:white; padding:0; }
-    .shuffle-btn{ display:none; }
+    .swap-btn{ display:none; }
   }
   @media (max-width: 520px){
-    .meal-row{ grid-template-columns: 90px 1fr 30px; }
+    .meal-row{ grid-template-columns: 70px 1fr; }
     .meal-label span.txt{ display:none; }
   }
 </style>
@@ -729,7 +741,7 @@ function render(){
 
   let html = `<div id="planContent"><div class="plan-head">
       <h2>Your next 7 days</h2>
-      <div class="note">Serving size: ${servingText} per meal · ${document.getElementById('pattern').selectedOptions[0].text} · tap ↻ to swap a dish</div>
+      <div class="note">Serving size: ${servingText} per meal · ${document.getElementById('pattern').selectedOptions[0].text} · tap "🔄 Try another dish" to swap anything</div>
     </div>`;
 
   planDates.forEach((d, dayIdx)=>{
@@ -778,8 +790,8 @@ function render(){
               <a class="recipe-link" href="${link}" target="_blank" rel="noopener">🔗 View recipe</a>
               <button class="copy-link-btn" data-link="${link}">📎 copy link</button>
             </div>
+            <button class="swap-btn" data-meal="${mealType}" data-day="${dayIdx}">🔄 Try another dish</button>
           </div>
-          <button class="shuffle-btn" data-meal="${mealType}" data-day="${dayIdx}" title="Swap this dish">↻</button>
         </div>`;
     });
     html += `<div class="day-total">Estimated day total: ~${dayCal} kcal</div>`;
@@ -789,7 +801,7 @@ function render(){
 
   planArea.innerHTML = html;
 
-  planArea.querySelectorAll('.shuffle-btn').forEach(btn=>{
+  planArea.querySelectorAll('.swap-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const mealType = btn.dataset.meal;
       const day = parseInt(btn.dataset.day,10);
