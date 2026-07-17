@@ -100,7 +100,7 @@
   @media print{ .food-banner, .header-widgets{ display:none; } }
 
   .setup{ background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 26px; box-shadow: 0 2px 0 var(--rule); }
-  .setup-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px 22px; align-items:end; }
+  .setup-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px 22px; align-items:start; }
   @media (max-width: 780px){ .setup-grid{ grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 480px){ .setup-grid{ grid-template-columns: 1fr; } }
   .field label{ display:block; font-family:'Baloo 2', sans-serif; font-weight:600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--chili-deep); margin-bottom: 6px; }
@@ -109,9 +109,20 @@
   .stepper button:hover{ background: var(--turmeric-soft); }
   .stepper input{ width: 46px; text-align:center; border:none; background:transparent; font-family:'Baloo 2'; font-weight:700; font-size:16px; color: var(--ink); }
   select{ width:100%; padding: 9px 10px; border-radius: 10px; border: 1.5px solid var(--rule); background: var(--steel); font-family:'Karla', sans-serif; font-size: 14px; color: var(--ink); }
-  .meal-toggles{ display:flex; gap:8px; flex-wrap:wrap; }
-  .chip{ padding: 7px 12px; border-radius: 999px; border: 1.5px solid var(--rule); background: var(--steel); font-size: 13px; font-weight:600; cursor:pointer; user-select:none; color: var(--ink-soft); }
-  .chip.on{ background: var(--cardamom); border-color: var(--cardamom); color: white; }
+  .radio-group, .check-group{ display:flex; flex-direction:column; gap:7px; }
+  .radio-item, .check-item{ display:flex; align-items:center; gap:8px; font-size:13.5px; color: var(--ink); cursor:pointer; }
+  .radio-item input, .check-item input{ width:16px; height:16px; accent-color: var(--chili); cursor:pointer; flex-shrink:0; }
+
+  .meal-row-setup{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .quick-switch{ display:flex; align-items:center; gap:6px; cursor:pointer; flex-shrink:0; }
+  .quick-switch input{ display:none; }
+  .switch-track{ width:34px; height:18px; background: var(--rule); border-radius:999px; position:relative; transition: background .15s; display:block; flex-shrink:0; }
+  .switch-thumb{ position:absolute; top:2px; left:2px; width:14px; height:14px; background:white; border-radius:50%; transition: transform .15s; box-shadow:0 1px 2px rgba(0,0,0,0.25); }
+  .quick-switch input:checked + .switch-track{ background: var(--turmeric); }
+  .quick-switch input:checked + .switch-track .switch-thumb{ transform: translateX(16px); }
+  .quick-switch input:disabled + .switch-track{ opacity:0.4; cursor:not-allowed; }
+  .quick-caption{ font-size:11.5px; color: var(--turmeric); font-weight:600; margin:0 0 9px; }
+
   .generate-row{ display:flex; justify-content:flex-end; margin-top:18px; }
   .special-toggle-row{ margin-top:16px; padding-top:14px; border-top: 1px dashed var(--rule); }
   .special-toggle{ display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:600; color: var(--ink); cursor:pointer; }
@@ -165,6 +176,10 @@
   .portion-tag.portion-full{ background: var(--turmeric-soft); color:#8A5A18; }
   .portion-tag.portion-reg{ background: var(--steel); color: var(--ink-soft); }
   .portion-tag.portion-light{ background: var(--cardamom-soft); color: #3E5636; }
+  .season-tag{ font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:#E3EEDD; color:#3E5636; }
+  .nature-tag{ font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; }
+  .nature-tag.warm{ background:#FBE0D3; color:#9C4A1F; }
+  .nature-tag.cool{ background:#DCEEF5; color:#255C74; }
   .day-total{ padding: 8px 16px 12px; font-size:12px; font-weight:700; color: var(--ink-soft); text-align:right; }
   .recipe-link{ font-size:11px; font-weight:700; color: var(--turmeric); text-decoration:none; border-bottom: 1px dotted var(--turmeric); }
   .recipe-link:hover{ color: var(--chili); border-color: var(--chili); }
@@ -275,11 +290,11 @@
         </div>
       </div>
       <div class="field">
-        <label for="diet">Diet</label>
-        <select id="diet">
-          <option value="veg">Vegetarian</option>
-          <option value="both" selected>Veg + occasional non-veg</option>
-        </select>
+        <label>Diet</label>
+        <div class="radio-group">
+          <label class="radio-item"><input type="radio" name="diet" value="veg"> Vegetarian</label>
+          <label class="radio-item"><input type="radio" name="diet" value="both" checked> Veg + occasional non-veg</label>
+        </div>
       </div>
       <div class="field">
         <label for="region">Kitchen leaning</label>
@@ -289,24 +304,40 @@
           <option value="south">South Indian</option>
           <option value="west">Maharashtrian / West Indian</option>
           <option value="east">East Indian</option>
+          <option value="continental">Continental</option>
+          <option value="chinese">Chinese (Indo-Chinese)</option>
+          <option value="mexican">Mexican</option>
         </select>
       </div>
       <div class="field">
         <label>Meals to plan</label>
-        <div class="meal-toggles">
-          <div class="chip on" data-meal="breakfast">Breakfast</div>
-          <div class="chip on" data-meal="tiffin">School Tiffin</div>
-          <div class="chip on" data-meal="lunch">Lunch</div>
-          <div class="chip on" data-meal="dinner">Dinner</div>
+        <p class="quick-caption">⚡ Flip the switch next to any meal to get quick recipes (~20 min or less) for that meal, every day</p>
+        <div class="check-group">
+          <div class="meal-row-setup">
+            <label class="check-item"><input type="checkbox" class="meal-check" value="breakfast" checked> Breakfast</label>
+            <label class="quick-switch"><input type="checkbox" class="meal-quick" data-meal="breakfast"><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          </div>
+          <div class="meal-row-setup">
+            <label class="check-item"><input type="checkbox" class="meal-check" value="tiffin" checked> School Tiffin</label>
+            <label class="quick-switch"><input type="checkbox" class="meal-quick" data-meal="tiffin"><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          </div>
+          <div class="meal-row-setup">
+            <label class="check-item"><input type="checkbox" class="meal-check" value="lunch" checked> Lunch</label>
+            <label class="quick-switch"><input type="checkbox" class="meal-quick" data-meal="lunch"><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          </div>
+          <div class="meal-row-setup">
+            <label class="check-item"><input type="checkbox" class="meal-check" value="dinner" checked> Dinner</label>
+            <label class="quick-switch"><input type="checkbox" class="meal-quick" data-meal="dinner"><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          </div>
         </div>
       </div>
       <div class="field">
-        <label for="pattern">Eating pattern</label>
-        <select id="pattern">
-          <option value="balanced" selected>Balanced through the day</option>
-          <option value="bigBreakfast">Heavy breakfast · Light dinner</option>
-          <option value="bigLunch">Heavy lunch · Light dinner</option>
-        </select>
+        <label>Eating pattern</label>
+        <div class="radio-group">
+          <label class="radio-item"><input type="radio" name="pattern" value="balanced" checked> Balanced through the day</label>
+          <label class="radio-item"><input type="radio" name="pattern" value="bigBreakfast"> Heavy breakfast · Light dinner</label>
+          <label class="radio-item"><input type="radio" name="pattern" value="bigLunch"> Heavy lunch · Light dinner</label>
+        </div>
       </div>
     </div>
     <div class="special-toggle-row home-row">
@@ -335,7 +366,7 @@
     <button class="btn-secondary" id="pdfBtn">⬇ Download as PDF</button>
     <button class="btn-secondary" id="copyBtn">📋 Copy as text</button>
   </div>
-  <div class="legend" id="legendNote" style="display:none;">🌕 Purnima · 🌑 Amavasya · 🐘 Sankashti Chaturthi · 🙏 Ekadashi (fasting) · 🎉 Festival · 🇮🇳 National holiday — many households go vegetarian on these days. Dates shown are for 2026 as per the standard Hindu Panchang and may shift by a day depending on local sighting/timing.<br>Calorie/protein figures are indicative estimates per serving for everyday planning, not lab-tested nutrition data.<br>⏳ Prep ahead flags things like soaking rajma/chole, fermenting dosa-idli batter, or sprouting matki — with a reminder shown the evening before it's needed.</div>
+  <div class="legend" id="legendNote" style="display:none;">🌕 Purnima · 🌑 Amavasya · 🐘 Sankashti Chaturthi · 🙏 Ekadashi (fasting) · 🎉 Festival · 🇮🇳 National holiday — many households go vegetarian on these days. Dates shown are for 2026 as per the standard Hindu Panchang and may shift by a day depending on local sighting/timing.<br>Calorie/protein figures are indicative estimates per serving for everyday planning, not lab-tested nutrition data.<br>⏳ Prep ahead flags things like soaking rajma/chole, fermenting dosa-idli batter, or sprouting matki — with a reminder shown the evening before it's needed.<br>🌦 in season nudges the picker toward vegetables typically at their best this time of year. ♨️/❄️ warming/cooling reflects common traditional/Ayurvedic household belief about food's effect on the body in each season — a gentle nudge, not medical advice.</div>
 
   <div class="credit">Humanity has split the atom, mapped the genome, and put a rover on Mars — yet every single evening, one question still brings entire households to a standstill: <em>"aaj kya banaye?"</em> 🍳 This modest attempt at solving that ancient civilizational crisis was engineered by <strong>Pankaj Kapote</strong>. If it saved you from tonight's kitchen debate — you know who to thank. 🙏</div>
 
@@ -370,7 +401,7 @@ const DB = {
   tiffin: [
     {name:"Vegetable Paratha Roll", desc:"Mixed-veg stuffed paratha rolled up, easy to eat cold.", veg:true, region:"north", ing:["Wheat flour","Mixed vegetables","Ginger","Spices"], cal:280, protein:6, prepTime:20},
     {name:"Veg Cheese Sandwich", desc:"Grilled sandwich with cucumber, tomato & cheese.", veg:true, region:"any", ing:["Bread","Cheese","Cucumber","Tomato","Butter"], cal:260, protein:9, prepTime:10},
-    {name:"Curd Rice", desc:"Comforting rice mixed with curd, tempered lightly, no reheating needed.", veg:true, region:"south", ing:["Cooked rice","Curd","Mustard seeds","Curry leaves","Pomegranate (optional)"], cal:230, protein:6, prepTime:10},
+    {name:"Curd Rice", desc:"Comforting rice mixed with curd, tempered lightly, no reheating needed.", veg:true, region:"south", ing:["Cooked rice","Curd","Mustard seeds","Curry leaves","Pomegranate (optional)"], cal:230, protein:6, prepTime:10, nature:"cool"},
     {name:"Vegetable Fried Rice", desc:"Lightly spiced rice with mixed vegetables, kid-friendly.", veg:true, region:"any", ing:["Cooked rice","Mixed vegetables","Soy sauce","Spring onion"], cal:300, protein:6, prepTime:15},
     {name:"Indian-style Pasta", desc:"Pasta tossed with ketchup, veggies & mild masala.", veg:true, region:"any", ing:["Pasta","Capsicum","Ketchup","Mixed herbs"], cal:320, protein:8, prepTime:20},
     {name:"Paneer Roll", desc:"Soft roti rolled with spiced paneer and veggies.", veg:true, region:"north", ing:["Roti/wrap","Paneer","Capsicum","Onion","Spices"], cal:300, protein:11, prepTime:15},
@@ -389,24 +420,30 @@ const DB = {
     {name:"Rajma Chawal", desc:"Kidney bean curry simmered in tomato gravy, served with rice.", veg:true, region:"north", ing:["Rajma (kidney beans)","Onion","Tomato","Rice"], cal:450, protein:15, prepTime:40, prepAhead:"Soak rajma (kidney beans) overnight"},
     {name:"Chole with Rice", desc:"Spiced chickpea curry, a weekend favourite.", veg:true, region:"north", ing:["Chickpeas (chole)","Onion","Tomato","Chole masala","Rice"], cal:470, protein:14, prepTime:40, prepAhead:"Soak chickpeas overnight"},
     {name:"Sambar, Rice & Poriyal", desc:"Lentil-vegetable stew with rice and a stir-fried side vegetable.", veg:true, region:"south", ing:["Toor dal","Sambar powder","Mixed vegetables","Rice"], cal:420, protein:13, prepTime:35},
-    {name:"Kadhi Chawal", desc:"Tangy yogurt-gram flour curry with steamed rice.", veg:true, region:"north", ing:["Curd","Gram flour (besan)","Rice","Curry leaves"], cal:400, protein:11, prepTime:30},
+    {name:"Kadhi Chawal", desc:"Tangy yogurt-gram flour curry with steamed rice.", veg:true, region:"north", ing:["Curd","Gram flour (besan)","Rice","Curry leaves"], cal:400, protein:11, prepTime:30, nature:"cool"},
     {name:"Mixed Vegetable Curry with Roti", desc:"Seasonal vegetables in a light onion-tomato gravy.", veg:true, region:"any", ing:["Seasonal vegetables","Onion","Tomato","Wheat flour"], cal:380, protein:10, prepTime:30},
     {name:"Bhindi Masala, Dal & Roti", desc:"Stir-fried okra with lentils and flatbread.", veg:true, region:"north", ing:["Okra (bhindi)","Onion","Toor dal","Wheat flour"], cal:420, protein:14, prepTime:35},
     {name:"Baingan Bharta with Roti", desc:"Smoky mashed eggplant curry, a classic pairing with roti.", veg:true, region:"north", ing:["Eggplant (baingan)","Onion","Tomato","Wheat flour"], cal:350, protein:9, prepTime:30},
     {name:"Palak Paneer with Roti", desc:"Cottage cheese cubes in a spiced spinach gravy.", veg:true, region:"north", ing:["Spinach (palak)","Paneer","Onion","Wheat flour"], cal:430, protein:16, prepTime:35},
-    {name:"Chicken Curry with Rice", desc:"Home-style chicken curry simmered with everyday spices.", veg:false, region:"any", ing:["Chicken","Onion","Tomato","Ginger-garlic","Rice"], cal:520, protein:30, prepTime:45},
-    {name:"Fish Curry with Rice", desc:"Coastal-style fish curry in a tangy coconut base.", veg:false, region:"south", ing:["Fish","Coconut","Tamarind","Curry leaves","Rice"], cal:460, protein:26, prepTime:35},
+    {name:"Chicken Curry with Rice", desc:"Home-style chicken curry simmered with everyday spices.", veg:false, region:"any", ing:["Chicken","Onion","Tomato","Ginger-garlic","Rice"], cal:520, protein:30, prepTime:45, nature:"warm"},
+    {name:"Fish Curry with Rice", desc:"Coastal-style fish curry in a tangy coconut base.", veg:false, region:"south", ing:["Fish","Coconut","Tamarind","Curry leaves","Rice"], cal:460, protein:26, prepTime:35, nature:"warm"},
     {name:"Egg Curry with Roti", desc:"Boiled eggs simmered in a spiced onion-tomato gravy.", veg:false, region:"any", ing:["Eggs","Onion","Tomato","Wheat flour"], cal:420, protein:18, prepTime:25},
     {name:"Kadai Paneer with Roti", desc:"Paneer and peppers tossed in a bold kadai masala.", veg:true, region:"north", ing:["Paneer","Capsicum","Onion","Kadai masala"], cal:440, protein:17, prepTime:30},
     {name:"Gobi Aloo, Dal & Roti", desc:"Cauliflower-potato dry sabzi with lentils and flatbread.", veg:true, region:"north", ing:["Cauliflower","Potato","Toor dal","Wheat flour"], cal:400, protein:12, prepTime:30},
-    {name:"Curd Rice, Pickle & Papad", desc:"A light, cooling lunch for a warm afternoon.", veg:true, region:"south", ing:["Cooked rice","Curd","Pickle","Papad"], cal:320, protein:8, prepTime:10},
+    {name:"Curd Rice, Pickle & Papad", desc:"A light, cooling lunch for a warm afternoon.", veg:true, region:"south", ing:["Cooked rice","Curd","Pickle","Papad"], cal:320, protein:8, prepTime:10, nature:"cool"},
     {name:"Vegetable Pulao with Raita", desc:"One-pot spiced rice with mixed vegetables and cooling yogurt.", veg:true, region:"any", ing:["Rice","Mixed vegetables","Whole spices","Curd"], cal:400, protein:9, prepTime:30},
-    {name:"Mutton Curry with Rice", desc:"Slow-cooked mutton curry, a weekend indulgence.", veg:false, region:"any", ing:["Mutton","Onion","Tomato","Whole spices","Rice"], cal:550, protein:28, prepTime:60, prepAhead:"Marinate mutton a few hours ahead (overnight for best flavour)"},
+    {name:"Mutton Curry with Rice", desc:"Slow-cooked mutton curry, a weekend indulgence.", veg:false, region:"any", ing:["Mutton","Onion","Tomato","Whole spices","Rice"], cal:550, protein:28, prepTime:60, prepAhead:"Marinate mutton a few hours ahead (overnight for best flavour)", nature:"warm"},
     {name:"Aloo Gobi with Dal & Roti", desc:"Classic potato-cauliflower dry sabzi with lentils.", veg:true, region:"north", ing:["Potato","Cauliflower","Toor dal","Wheat flour"], cal:400, protein:12, prepTime:30},
-    {name:"Prawn Curry with Rice", desc:"Coconut-based coastal prawn curry.", veg:false, region:"south", ing:["Prawns","Coconut","Curry leaves","Rice"], cal:440, protein:24, prepTime:30},
+    {name:"Prawn Curry with Rice", desc:"Coconut-based coastal prawn curry.", veg:false, region:"south", ing:["Prawns","Coconut","Curry leaves","Rice"], cal:440, protein:24, prepTime:30, nature:"warm"},
     {name:"Varan Bhaat with Tup & Papad", desc:"Maharashtrian everyday dal-rice with a spoon of ghee and crisp papad.", veg:true, region:"west", ing:["Toor dal","Rice","Ghee","Papad"], cal:400, protein:12, prepTime:25},
     {name:"Pithla Bhakri", desc:"Spiced gram-flour curry with jowar or bajra flatbread — a Maharashtrian staple.", veg:true, region:"west", ing:["Gram flour (besan)","Jowar/bajra flour","Onion","Garlic"], cal:380, protein:12, prepTime:20},
     {name:"Zunka Bhakri with Salad", desc:"Dry spiced gram-flour crumble served with bhakri and raw onion.", veg:true, region:"west", ing:["Gram flour (besan)","Jowar/bajra flour","Onion","Green chilli"], cal:360, protein:11, prepTime:20},
+    {name:"Chilli Paneer with Fried Rice", desc:"Indo-Chinese paneer tossed in a tangy sauce, with fried rice.", veg:true, region:"chinese", ing:["Paneer","Capsicum","Soy sauce","Rice"], cal:420, protein:16, prepTime:30},
+    {name:"Schezwan Fried Rice with Veg", desc:"Spicy Indo-Chinese fried rice loaded with vegetables.", veg:true, region:"chinese", ing:["Rice","Mixed vegetables","Schezwan sauce","Spring onion"], cal:380, protein:8, prepTime:25},
+    {name:"Grilled Veg & Cheese Sandwich Platter", desc:"Grilled sandwiches with a side salad, continental-style.", veg:true, region:"continental", ing:["Bread","Cheese","Mixed vegetables","Butter"], cal:400, protein:14, prepTime:20},
+    {name:"Grilled Chicken with Sautéed Vegetables", desc:"Simple grilled chicken with lightly sautéed vegetables.", veg:false, region:"continental", ing:["Chicken breast","Mixed vegetables","Olive oil","Herbs"], cal:420, protein:32, prepTime:30},
+    {name:"Veg Burrito Bowl", desc:"Rice, beans, corn & salsa in a Mexican-style bowl.", veg:true, region:"mexican", ing:["Rice","Kidney/black beans","Corn","Salsa"], cal:400, protein:13, prepTime:25},
+    {name:"Mexican Rice with Beans", desc:"Tomato-spiced rice with beans, Mexican-style.", veg:true, region:"mexican", ing:["Rice","Beans","Tomato","Bell pepper"], cal:380, protein:11, prepTime:25},
   ],
   dinner: [
     {name:"Khichdi with Kadhi", desc:"Light rice-lentil khichdi with tangy yogurt curry — easy on digestion.", veg:true, region:"any", ing:["Rice","Moong dal","Curd","Gram flour"], cal:320, protein:10, prepTime:25},
@@ -416,7 +453,7 @@ const DB = {
     {name:"Vegetable Pulao", desc:"One-pot rice with vegetables, needs no extra side.", veg:true, region:"any", ing:["Rice","Mixed vegetables","Whole spices"], cal:340, protein:7, prepTime:25},
     {name:"Moong Dal Khichdi", desc:"Light, protein-rich khichdi, gentle on the stomach at night.", veg:true, region:"any", ing:["Rice","Split moong dal","Cumin","Ghee"], cal:300, protein:12, prepTime:20},
     {name:"Egg Curry with Roti", desc:"Simple egg curry, quicker than a meat-based one.", veg:false, region:"any", ing:["Eggs","Onion","Tomato","Wheat flour"], cal:400, protein:17, prepTime:25},
-    {name:"Chicken Stew with Rice", desc:"Mild coconut-based stew, comforting for dinner.", veg:false, region:"south", ing:["Chicken","Coconut milk","Potato","Rice"], cal:420, protein:22, prepTime:35},
+    {name:"Chicken Stew with Rice", desc:"Mild coconut-based stew, comforting for dinner.", veg:false, region:"south", ing:["Chicken","Coconut milk","Potato","Rice"], cal:420, protein:22, prepTime:35, nature:"warm"},
     {name:"Mixed Dal with Roti", desc:"A blend of lentils cooked simply with roti.", veg:true, region:"any", ing:["Mixed lentils","Onion","Tomato","Wheat flour"], cal:340, protein:13, prepTime:25},
     {name:"Vegetable Stir-fry with Roti", desc:"Quick tossed vegetables with light seasoning.", veg:true, region:"any", ing:["Seasonal vegetables","Garlic","Wheat flour"], cal:320, protein:8, prepTime:20},
     {name:"Tomato Soup with Multigrain Toast", desc:"A light finish to the day.", veg:true, region:"any", ing:["Tomato","Garlic","Multigrain bread"], cal:220, protein:6, prepTime:15},
@@ -426,6 +463,13 @@ const DB = {
     {name:"Paneer Tikka with Roti", desc:"Grilled spiced paneer, a lighter tandoor-style dinner.", veg:true, region:"north", ing:["Paneer","Curd","Tikka masala","Wheat flour"], cal:380, protein:16, prepTime:25},
     {name:"Varan Bhaat with Tup", desc:"Light everyday Maharashtrian dal-rice finished with a spoon of ghee.", veg:true, region:"west", ing:["Toor dal","Rice","Ghee"], cal:340, protein:11, prepTime:20},
     {name:"Thalipeeth with Curd", desc:"Multigrain savoury pancake, a light and filling dinner option.", veg:true, region:"west", ing:["Bhajani (multigrain flour)","Onion","Curd"], cal:300, protein:8, prepTime:20},
+    {name:"Veg Hakka Noodles", desc:"Stir-fried Indo-Chinese noodles with vegetables.", veg:true, region:"chinese", ing:["Noodles","Mixed vegetables","Soy sauce","Garlic"], cal:400, protein:9, prepTime:25},
+    {name:"Veg Manchurian with Fried Rice", desc:"Deep-fried vegetable balls in a tangy sauce, with fried rice.", veg:true, region:"chinese", ing:["Mixed vegetables","Cornflour","Soy sauce","Rice"], cal:430, protein:10, prepTime:35},
+    {name:"Chicken Manchurian with Noodles", desc:"Indo-Chinese chicken in a tangy sauce, served with noodles.", veg:false, region:"chinese", ing:["Chicken","Soy sauce","Garlic","Noodles"], cal:460, protein:26, prepTime:35},
+    {name:"Baked Vegetable Pasta", desc:"Oven-baked pasta with vegetables and a cheesy top.", veg:true, region:"continental", ing:["Pasta","Mixed vegetables","Cheese","White/tomato sauce"], cal:440, protein:15, prepTime:35},
+    {name:"Mushroom Soup with Garlic Bread", desc:"Creamy mushroom soup with toasted garlic bread.", veg:true, region:"continental", ing:["Mushroom","Milk/cream","Bread","Garlic"], cal:340, protein:9, prepTime:25},
+    {name:"Bean & Cheese Quesadilla", desc:"Toasted tortilla folded with beans and melted cheese, Mexican-style.", veg:true, region:"mexican", ing:["Tortilla","Beans","Cheese","Salsa"], cal:420, protein:16, prepTime:20},
+    {name:"Chicken Fajita Bowl", desc:"Grilled chicken and peppers over rice, Mexican-style.", veg:false, region:"mexican", ing:["Chicken","Bell pepper","Onion","Rice"], cal:440, protein:28, prepTime:30},
   ]
 };
 
@@ -452,32 +496,32 @@ const BASE_BY_REGION = {
 
 const SABZI = [
   // Maharashtrian / West
-  {name:"Vangi Bhaji", desc:"Eggplant cooked Maharashtrian-style with goda masala.", veg:true, region:"west", ing:["Eggplant","Goda masala","Onion","Peanuts"], cal:150, protein:3, prepTime:20},
-  {name:"Batata Bhaji", desc:"Everyday potato bhaji, mustard-curry leaf tempering.", veg:true, region:"west", ing:["Potato","Mustard seeds","Curry leaves","Turmeric"], cal:180, protein:3, prepTime:20},
-  {name:"Bhopla Bhaji", desc:"Pumpkin cooked with a light Maharashtrian tempering.", veg:true, region:"west", ing:["Pumpkin","Goda masala","Peanuts"], cal:120, protein:2, prepTime:20},
-  {name:"Dodka Bhaji", desc:"Ridge gourd, lightly spiced — a quick, easy-digesting sabzi.", veg:true, region:"west", ing:["Ridge gourd","Onion","Garlic"], cal:100, protein:2, prepTime:20},
-  {name:"Gawar Bhaji", desc:"Cluster beans stir-fried with everyday spices.", veg:true, region:"west", ing:["Cluster beans","Onion","Peanuts"], cal:130, protein:4, prepTime:20},
-  {name:"Tondli Bhaji", desc:"Ivy gourd stir-fry, a common weekday sabzi.", veg:true, region:"west", ing:["Ivy gourd (tondli)","Onion","Garlic"], cal:140, protein:3, prepTime:20},
-  {name:"Matki Usal", desc:"Sprouted moth bean curry, protein-rich and everyday-easy.", veg:true, region:"west", ing:["Sprouted moth beans (matki)","Onion","Goda masala"], cal:220, protein:11, prepTime:25, prepAhead:"Sprout moth beans (matki) 1-2 days ahead"},
-  {name:"Val Bhaji", desc:"Field beans curry made with soaked dried vaal.", veg:true, region:"west", ing:["Dried field beans (vaal)","Onion","Goda masala"], cal:200, protein:9, prepTime:25, prepAhead:"Soak dried vaal overnight"},
+  {name:"Vangi Bhaji", desc:"Eggplant cooked Maharashtrian-style with goda masala.", veg:true, region:"west", ing:["Eggplant","Goda masala","Onion","Peanuts"], cal:150, protein:3, prepTime:20, season:["winter"], nature:"neutral"},
+  {name:"Batata Bhaji", desc:"Everyday potato bhaji, mustard-curry leaf tempering.", veg:true, region:"west", ing:["Potato","Mustard seeds","Curry leaves","Turmeric"], cal:180, protein:3, prepTime:20, season:["any"], nature:"neutral"},
+  {name:"Bhopla Bhaji", desc:"Pumpkin cooked with a light Maharashtrian tempering.", veg:true, region:"west", ing:["Pumpkin","Goda masala","Peanuts"], cal:120, protein:2, prepTime:20, season:["monsoon","winter"], nature:"cool"},
+  {name:"Dodka Bhaji", desc:"Ridge gourd, lightly spiced — a quick, easy-digesting sabzi.", veg:true, region:"west", ing:["Ridge gourd","Onion","Garlic"], cal:100, protein:2, prepTime:20, season:["summer","monsoon"], nature:"cool"},
+  {name:"Gawar Bhaji", desc:"Cluster beans stir-fried with everyday spices.", veg:true, region:"west", ing:["Cluster beans","Onion","Peanuts"], cal:130, protein:4, prepTime:20, season:["summer","monsoon"], nature:"neutral"},
+  {name:"Tondli Bhaji", desc:"Ivy gourd stir-fry, a common weekday sabzi.", veg:true, region:"west", ing:["Ivy gourd (tondli)","Onion","Garlic"], cal:140, protein:3, prepTime:20, season:["summer"], nature:"neutral"},
+  {name:"Matki Usal", desc:"Sprouted moth bean curry, protein-rich and everyday-easy.", veg:true, region:"west", ing:["Sprouted moth beans (matki)","Onion","Goda masala"], cal:220, protein:11, prepTime:25, prepAhead:"Sprout moth beans (matki) 1-2 days ahead", season:["any"], nature:"warm"},
+  {name:"Val Bhaji", desc:"Field beans curry made with soaked dried vaal.", veg:true, region:"west", ing:["Dried field beans (vaal)","Onion","Goda masala"], cal:200, protein:9, prepTime:25, prepAhead:"Soak dried vaal overnight", season:["winter"], nature:"warm"},
   // North
-  {name:"Aloo Matar", desc:"Everyday potato-peas curry.", veg:true, region:"north", ing:["Potato","Green peas","Tomato","Cumin"], cal:200, protein:5, prepTime:20},
-  {name:"Lauki Sabzi", desc:"Bottle gourd cooked simply with everyday spices.", veg:true, region:"north", ing:["Bottle gourd","Cumin","Tomato"], cal:120, protein:3, prepTime:20},
-  {name:"Gobi Matar", desc:"Cauliflower-peas dry sabzi.", veg:true, region:"north", ing:["Cauliflower","Green peas","Cumin"], cal:170, protein:5, prepTime:20},
-  {name:"Karela Sabzi", desc:"Bitter gourd stir-fry, a well-loved everyday side.", veg:true, region:"north", ing:["Bitter gourd (karela)","Onion","Besan"], cal:130, protein:3, prepTime:20},
-  {name:"Methi Aloo", desc:"Fenugreek leaves cooked with potato.", veg:true, region:"north", ing:["Fenugreek leaves (methi)","Potato","Cumin"], cal:160, protein:4, prepTime:20},
+  {name:"Aloo Matar", desc:"Everyday potato-peas curry.", veg:true, region:"north", ing:["Potato","Green peas","Tomato","Cumin"], cal:200, protein:5, prepTime:20, season:["winter"], nature:"neutral"},
+  {name:"Lauki Sabzi", desc:"Bottle gourd cooked simply with everyday spices.", veg:true, region:"north", ing:["Bottle gourd","Cumin","Tomato"], cal:120, protein:3, prepTime:20, season:["summer"], nature:"cool"},
+  {name:"Gobi Matar", desc:"Cauliflower-peas dry sabzi.", veg:true, region:"north", ing:["Cauliflower","Green peas","Cumin"], cal:170, protein:5, prepTime:20, season:["winter"], nature:"neutral"},
+  {name:"Karela Sabzi", desc:"Bitter gourd stir-fry, a well-loved everyday side.", veg:true, region:"north", ing:["Bitter gourd (karela)","Onion","Besan"], cal:130, protein:3, prepTime:20, season:["summer"], nature:"cool"},
+  {name:"Methi Aloo", desc:"Fenugreek leaves cooked with potato.", veg:true, region:"north", ing:["Fenugreek leaves (methi)","Potato","Cumin"], cal:160, protein:4, prepTime:20, season:["winter"], nature:"warm"},
   // South
-  {name:"Beans Poriyal", desc:"French beans stir-fried with coconut.", veg:true, region:"south", ing:["French beans","Coconut","Mustard seeds"], cal:130, protein:4, prepTime:15},
-  {name:"Cabbage Poriyal", desc:"Cabbage stir-fried with coconut and curry leaves.", veg:true, region:"south", ing:["Cabbage","Coconut","Curry leaves"], cal:110, protein:3, prepTime:15},
-  {name:"Avial", desc:"Mixed vegetables in a coconut-yogurt gravy.", veg:true, region:"south", ing:["Mixed vegetables","Coconut","Curd"], cal:180, protein:5, prepTime:25},
-  {name:"Vazhakkai Curry", desc:"Raw banana curry, a South Indian everyday side.", veg:true, region:"south", ing:["Raw banana","Coconut","Mustard seeds"], cal:160, protein:3, prepTime:20},
+  {name:"Beans Poriyal", desc:"French beans stir-fried with coconut.", veg:true, region:"south", ing:["French beans","Coconut","Mustard seeds"], cal:130, protein:4, prepTime:15, season:["any"], nature:"neutral"},
+  {name:"Cabbage Poriyal", desc:"Cabbage stir-fried with coconut and curry leaves.", veg:true, region:"south", ing:["Cabbage","Coconut","Curry leaves"], cal:110, protein:3, prepTime:15, season:["winter"], nature:"neutral"},
+  {name:"Avial", desc:"Mixed vegetables in a coconut-yogurt gravy.", veg:true, region:"south", ing:["Mixed vegetables","Coconut","Curd"], cal:180, protein:5, prepTime:25, season:["any"], nature:"cool"},
+  {name:"Vazhakkai Curry", desc:"Raw banana curry, a South Indian everyday side.", veg:true, region:"south", ing:["Raw banana","Coconut","Mustard seeds"], cal:160, protein:3, prepTime:20, season:["any"], nature:"neutral"},
   // East
-  {name:"Aloo Posto", desc:"Potatoes in a mild poppy-seed paste, a Bengali staple.", veg:true, region:"east", ing:["Potato","Poppy seeds (posto)","Green chilli"], cal:190, protein:4, prepTime:20},
-  {name:"Shukto", desc:"Mixed vegetable stew with a gentle bitter note.", veg:true, region:"east", ing:["Mixed vegetables","Bitter gourd","Ginger","Milk"], cal:140, protein:4, prepTime:25},
-  {name:"Chorchori", desc:"Mashed mixed-vegetable sabzi, cooked slow and simple.", veg:true, region:"east", ing:["Mixed vegetables","Panch phoron","Mustard oil"], cal:150, protein:4, prepTime:20},
+  {name:"Aloo Posto", desc:"Potatoes in a mild poppy-seed paste, a Bengali staple.", veg:true, region:"east", ing:["Potato","Poppy seeds (posto)","Green chilli"], cal:190, protein:4, prepTime:20, season:["any"], nature:"warm"},
+  {name:"Shukto", desc:"Mixed vegetable stew with a gentle bitter note.", veg:true, region:"east", ing:["Mixed vegetables","Bitter gourd","Ginger","Milk"], cal:140, protein:4, prepTime:25, season:["summer"], nature:"cool"},
+  {name:"Chorchori", desc:"Mashed mixed-vegetable sabzi, cooked slow and simple.", veg:true, region:"east", ing:["Mixed vegetables","Panch phoron","Mustard oil"], cal:150, protein:4, prepTime:20, season:["monsoon","winter"], nature:"neutral"},
   // Any / pan-India
-  {name:"Palak Bhaji", desc:"Simple spinach stir-fry, quick and light.", veg:true, region:"any", ing:["Spinach","Garlic","Onion"], cal:110, protein:4, prepTime:15},
-  {name:"Mixed Seasonal Sabzi", desc:"Whatever vegetables are on hand, cooked simply.", veg:true, region:"any", ing:["Seasonal vegetables","Onion","Everyday spices"], cal:150, protein:4, prepTime:20},
+  {name:"Palak Bhaji", desc:"Simple spinach stir-fry, quick and light.", veg:true, region:"any", ing:["Spinach","Garlic","Onion"], cal:110, protein:4, prepTime:15, season:["winter"], nature:"neutral"},
+  {name:"Mixed Seasonal Sabzi", desc:"Whatever vegetables are on hand, cooked simply.", veg:true, region:"any", ing:["Seasonal vegetables","Onion","Everyday spices"], cal:150, protein:4, prepTime:20, season:["any"], nature:"neutral"},
 ];
 function baseLineFor(region){
   return BASE_BY_REGION[region] || BASE_BY_REGION.any;
@@ -590,12 +634,58 @@ function buildDates(){
   }
 }
 
-/* ---------------- Recipe pool helpers ---------------- */
+/* ---------------- Setting readers (radio/checkbox based) ---------------- */
+function getDiet(){ return document.querySelector('input[name="diet"]:checked').value; }
+function getRegion(){ return document.getElementById('region').value; }
+function getPatternKey(){ return document.querySelector('input[name="pattern"]:checked').value; }
+function getPatternLabel(){ return document.querySelector('input[name="pattern"]:checked').closest('.radio-item').textContent.trim(); }
 function isHomeStyle(){ return document.getElementById('homeStyle').checked; }
+function getQuickMealSet(){
+  const s = new Set();
+  document.querySelectorAll('.meal-quick:checked').forEach(el => s.add(el.dataset.meal));
+  return s;
+}
+function isQuickMeal(mealType){ return getQuickMealSet().has(mealType); }
+
+/* ---------------- Season & traditional hot/cold bias ----------------
+   3 broad practical seasons rather than the full 6-Ritu calendar, to keep
+   this maintainable. The hot/cold ("garam/thanda") weighting reflects
+   common traditional/Ayurvedic household belief, not medical guidance —
+   it's a gentle nudge in the random pick, never a hard filter. */
+function getSeason(date){
+  const m = date.getMonth() + 1;
+  if(m >= 3 && m <= 6) return 'summer';
+  if(m >= 7 && m <= 9) return 'monsoon';
+  return 'winter';
+}
+function seasonWeight(itemSeasons, season){
+  if(!itemSeasons || itemSeasons.includes('any')) return 1.0;
+  return itemSeasons.includes(season) ? 1.6 : 0.8;
+}
+function natureWeight(nature, season){
+  if(!nature || nature === 'neutral') return 1.0;
+  if(season === 'summer') return nature === 'cool' ? 1.4 : (nature === 'warm' ? 0.7 : 1.0);
+  if(season === 'winter') return nature === 'warm' ? 1.4 : (nature === 'cool' ? 0.75 : 1.0);
+  return 1.0; // monsoon: no strong bias either way
+}
+function weightedRandomPick(list, season){
+  if(list.length === 0) return undefined;
+  const weights = list.map(r => seasonWeight(r.season, season) * natureWeight(r.nature, season));
+  const total = weights.reduce((a,b)=>a+b, 0);
+  let x = Math.random() * total;
+  for(let i=0; i<list.length; i++){
+    x -= weights[i];
+    if(x <= 0) return list[i];
+  }
+  return list[list.length-1];
+}
+
+/* ---------------- Recipe pool helpers ---------------- */
 function filteredPool(mealType){
-  const diet = document.getElementById('diet').value;
-  const region = document.getElementById('region').value;
-  if((mealType === 'lunch' || mealType === 'dinner') && isHomeStyle()){
+  const diet = getDiet();
+  const region = getRegion();
+  const indianRegions = ['any','north','south','west','east'];
+  if((mealType === 'lunch' || mealType === 'dinner') && isHomeStyle() && indianRegions.includes(region)){
     return SABZI
       .filter(r => region === 'any' ? true : (r.region === region || r.region === 'any'))
       .map(r => Object.assign({}, r, {isSabzi:true}));
@@ -606,36 +696,70 @@ function filteredPool(mealType){
     return dietOk && regionOk;
   });
 }
-function shuffle(arr){
-  const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-  return a;
-}
-function pickWeek(mealType){
-  let pool = shuffle(filteredPool(mealType));
-  if(pool.length === 0) pool = shuffle(DB[mealType]);
-  const week = [];
-  for(let i=0;i<7;i++){
-    if(pool.length === 0) pool = shuffle(filteredPool(mealType).length ? filteredPool(mealType) : DB[mealType]);
-    week.push(pool.pop());
-  }
-  return week;
-}
-function pickOne(mealType, avoidName){
-  let pool = filteredPool(mealType).filter(r=>r.name !== avoidName);
-  if(pool.length === 0) pool = DB[mealType].filter(r=>r.name !== avoidName);
-  return pool[Math.floor(Math.random()*pool.length)];
-}
 function recipeLink(name){
   return "https://www.google.com/search?q=" + encodeURIComponent(name + " recipe");
 }
+
+/* Builds the full week for every active meal, day by day, so we can apply
+   two cross-cutting rules while picking: (1) for any meal type marked
+   "Quick only", every day only ~20-min-or-under dishes are eligible; (2) for
+   lunch & dinner specifically, nothing repeats within the last 2 days across
+   either slot. */
+function generateWeek(){
+  currentPlan = {};
+  activeMeals.forEach(m => currentPlan[m] = new Array(7));
+  const recentLD = []; // rolling window of recent lunch/dinner names (shared, since these shouldn't repeat across either slot)
+  const recentByMeal = {}; // independent short-term memory for breakfast/tiffin
+  activeMeals.forEach(m => { if(m === 'breakfast' || m === 'tiffin') recentByMeal[m] = []; });
+  const quickMeals = getQuickMealSet();
+
+  for(let dayIdx = 0; dayIdx < 7; dayIdx++){
+    const season = getSeason(planDates[dayIdx]);
+
+    activeMeals.forEach(mealType=>{
+      let pool = filteredPool(mealType);
+      if(quickMeals.has(mealType)){
+        const timeFiltered = pool.filter(r => (r.prepTime || 20) <= 20);
+        if(timeFiltered.length) pool = timeFiltered;
+      }
+      let candidates = pool;
+      if(mealType === 'lunch' || mealType === 'dinner'){
+        const noRepeat = pool.filter(r => !recentLD.includes(r.name));
+        if(noRepeat.length) candidates = noRepeat;
+      } else if(recentByMeal[mealType]){
+        const noRepeat = pool.filter(r => !recentByMeal[mealType].includes(r.name));
+        if(noRepeat.length) candidates = noRepeat;
+      }
+      const pick = weightedRandomPick(candidates, season) || DB[mealType][0];
+      currentPlan[mealType][dayIdx] = pick;
+      if(mealType === 'lunch' || mealType === 'dinner'){
+        recentLD.push(pick.name);
+        if(recentLD.length > 4) recentLD.shift();
+      } else if(recentByMeal[mealType]){
+        recentByMeal[mealType].push(pick.name);
+        if(recentByMeal[mealType].length > 3) recentByMeal[mealType].shift();
+      }
+    });
+  }
+}
+function pickOne(mealType, avoidName, dayIdx){
+  let pool = filteredPool(mealType).filter(r => r.name !== avoidName);
+  if(isQuickMeal(mealType)){
+    const timeFiltered = pool.filter(r => (r.prepTime || 20) <= 20);
+    if(timeFiltered.length) pool = timeFiltered;
+  }
+  if(pool.length === 0) pool = DB[mealType].filter(r=>r.name !== avoidName);
+  const season = planDates[dayIdx] ? getSeason(planDates[dayIdx]) : 'monsoon';
+  return weightedRandomPick(pool, season);
+}
 function filteredTreatPool(mealType){
-  const diet = document.getElementById('diet').value;
+  const diet = getDiet();
   const list = TREATS[mealType] || [];
   return list.filter(r => diet === 'veg' ? r.veg : true);
 }
 function fastPool(mealType){
-  return filteredPool(mealType).filter(r => r.fast);
+  const diet = getDiet();
+  return DB[mealType].filter(r => r.fast && (diet === 'veg' ? r.veg : true));
 }
 
 /* Applies festival specials, fasting-day picks, and (if enabled) weekend/festival
@@ -647,15 +771,22 @@ function fastPool(mealType){
    entirely for veg-only households. */
 function applyProteinDays(){
   if(!isHomeStyle()) return;
-  if(document.getElementById('diet').value !== 'both') return;
-  const region = document.getElementById('region').value;
+  if(getDiet() !== 'both') return;
+  const region = getRegion();
+  const usedNames = new Set();
+  const usedDays = new Set();
   ['lunch','dinner'].forEach(mealType=>{
     if(!activeMeals.includes(mealType)) return;
-    const nonVegPool = DB[mealType].filter(r => !r.veg && (region === 'any' || r.region === region || r.region === 'any'));
-    if(nonVegPool.length === 0) return;
-    const dayIdx = Math.floor(Math.random()*7);
+    let nonVegPool = DB[mealType].filter(r => !r.veg && (region === 'any' || r.region === region || r.region === 'any'));
+    nonVegPool = nonVegPool.filter(r => !usedNames.has(r.name));
+    if(nonVegPool.length === 0) return; // nothing left that isn't already used elsewhere this week — skip rather than force a repeat
+    let dayIdx = Math.floor(Math.random()*7);
+    let attempts = 0;
+    while(usedDays.has(dayIdx) && attempts < 10){ dayIdx = Math.floor(Math.random()*7); attempts++; }
     const pick = nonVegPool[Math.floor(Math.random()*nonVegPool.length)];
     currentPlan[mealType][dayIdx] = Object.assign({}, pick, {badge:'protein'});
+    usedNames.add(pick.name);
+    usedDays.add(dayIdx);
   });
 }
 
@@ -741,7 +872,7 @@ function render(){
 
   let html = `<div id="planContent"><div class="plan-head">
       <h2>Your next 7 days</h2>
-      <div class="note">Serving size: ${servingText} per meal · ${document.getElementById('pattern').selectedOptions[0].text} · tap "🔄 Try another dish" to swap anything</div>
+      <div class="note">Serving size: ${servingText} per meal · ${getPatternLabel()} · tap "🔄 Try another dish" to swap anything</div>
     </div>`;
 
   planDates.forEach((d, dayIdx)=>{
@@ -760,7 +891,7 @@ function render(){
       ${note !== undefined ? `<input class="day-note-input" data-daynote="${dayIdx}" value="${note.replace(/"/g,'&quot;')}" placeholder="e.g. India match tonight, guests coming, fasting day...">` : ''}
       ${dayReminders[dayIdx] ? `<div class="reminder-banner">${dayReminders[dayIdx].map(r=>`<div class="${r.urgent?'urgent':''}">${r.urgent?'⚠️':'🔔'} ${r.text}</div>`).join('')}</div>` : ''}
     `;
-    const pattern = PATTERNS[document.getElementById('pattern').value];
+    const pattern = PATTERNS[getPatternKey()];
     let dayCal = 0;
     activeMeals.forEach(mealType=>{
       const recipe = currentPlan[mealType][dayIdx];
@@ -772,7 +903,11 @@ function render(){
       dayCal += dispCal;
       const badgeMap = {festival:'🎊 Festival special', fasting:'🙏 Fasting-friendly', treat:'🎉 Weekend treat', protein:'🍗 Non-veg day'};
       const badgeHtml = recipe.badge ? `<span class="special-badge ${recipe.badge}">${badgeMap[recipe.badge]}</span>` : '';
-      const baseLineHtml = recipe.isSabzi ? `<p class="base-line">🍽️ Served with: ${baseLineFor(document.getElementById('region').value)}</p>` : '';
+      const baseLineHtml = recipe.isSabzi ? `<p class="base-line">🍽️ Served with: ${baseLineFor(getRegion())}</p>` : '';
+      const dishSeason = getSeason(planDates[dayIdx]);
+      const inSeasonHtml = (recipe.season && !recipe.season.includes('any') && recipe.season.includes(dishSeason)) ? `<span class="season-tag">🌦 in season</span>` : '';
+      const natureIcons = {warm:'♨️ warming', cool:'❄️ cooling'};
+      const natureHtml = (recipe.nature && recipe.nature !== 'neutral') ? `<span class="nature-tag ${recipe.nature}">${natureIcons[recipe.nature]}</span>` : '';
       html += `
         <div class="meal-row">
           <div class="meal-label"><span class="meal-icon">${meta.icon}</span><span class="txt">${meta.label}</span></div>
@@ -787,6 +922,8 @@ function render(){
               <span class="time-tag">⏱ ~${recipe.prepTime || 20} min</span>
               <span class="nutri-tag">🔥 ~${dispCal} kcal · 💪 ${dispProtein}g protein</span>
               <span class="portion-tag portion-${mult<=0.8?'light':mult>=1.15?'full':'reg'}">${portionTag(mult)}</span>
+              ${inSeasonHtml}
+              ${natureHtml}
               <a class="recipe-link" href="${link}" target="_blank" rel="noopener">🔗 View recipe</a>
               <button class="copy-link-btn" data-link="${link}">📎 copy link</button>
             </div>
@@ -806,7 +943,7 @@ function render(){
       const mealType = btn.dataset.meal;
       const day = parseInt(btn.dataset.day,10);
       const current = currentPlan[mealType][day];
-      currentPlan[mealType][day] = pickOne(mealType, current.name);
+      currentPlan[mealType][day] = pickOne(mealType, current.name, day);
       computeReminders();
       render();
     });
@@ -835,11 +972,10 @@ function render(){
 }
 
 function generatePlan(){
-  activeMeals = Array.from(document.querySelectorAll('.chip.on')).map(c=>c.dataset.meal);
+  activeMeals = Array.from(document.querySelectorAll('.meal-check:checked')).map(c=>c.value);
   if(activeMeals.length === 0){ alert('Pick at least one meal to plan.'); return; }
   buildDates();
-  currentPlan = {};
-  activeMeals.forEach(mealType=>{ currentPlan[mealType] = pickWeek(mealType); });
+  generateWeek();
   applyProteinDays();
   applyDayOverrides();
   computeReminders();
@@ -862,9 +998,9 @@ function planAsText(){
   const adults = document.getElementById('adults').value;
   const kids = document.getElementById('kids').value;
   const servingText = parseInt(kids,10) > 0 ? `~${adults} adults + ${kids} kid${kids==1?'':'s'}` : `~${adults} adults`;
-  const pattern = PATTERNS[document.getElementById('pattern').value];
-  const region = document.getElementById('region').value;
-  let lines = [`🍛 *Weekly Meal Plan* (for ${servingText} · ${document.getElementById('pattern').selectedOptions[0].text})\n`];
+  const pattern = PATTERNS[getPatternKey()];
+  const region = getRegion();
+  let lines = [`🍛 *Weekly Meal Plan* (for ${servingText} · ${getPatternLabel()})\n`];
   planDates.forEach((d, dayIdx)=>{
     const key = fmtKey(d);
     const tag = EVENTS[key] ? `  [${EVENTS[key]}]` : '';
@@ -930,18 +1066,31 @@ document.getElementById('kidsPlus').addEventListener('click', ()=>{
   input.value = Math.min(10, parseInt(input.value,10)+1);
   if(Object.keys(currentPlan).length) render();
 });
-document.querySelectorAll('.chip').forEach(chip=>{
-  chip.addEventListener('click', ()=> chip.classList.toggle('on'));
-});
 document.getElementById('generateBtn').addEventListener('click', generatePlan);
-document.getElementById('pattern').addEventListener('change', ()=>{
-  if(Object.keys(currentPlan).length) render();
+document.querySelectorAll('input[name="pattern"]').forEach(el=>{
+  el.addEventListener('change', ()=>{
+    if(Object.keys(currentPlan).length) render();
+  });
 });
 document.getElementById('funSpecials').addEventListener('change', ()=>{
   if(Object.keys(currentPlan).length) generatePlan();
 });
 document.getElementById('homeStyle').addEventListener('change', ()=>{
   if(Object.keys(currentPlan).length) generatePlan();
+});
+document.querySelectorAll('.meal-quick').forEach(el=>{
+  el.addEventListener('change', ()=>{
+    if(Object.keys(currentPlan).length) generatePlan();
+  });
+});
+document.querySelectorAll('.meal-check').forEach(el=>{
+  el.addEventListener('change', ()=>{
+    const quickSwitch = document.querySelector(`.meal-quick[data-meal="${el.value}"]`);
+    if(quickSwitch){
+      quickSwitch.disabled = !el.checked;
+      if(!el.checked) quickSwitch.checked = false;
+    }
+  });
 });
 
 /* ---------------- Scrolling food banner ---------------- */
