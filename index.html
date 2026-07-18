@@ -254,11 +254,23 @@
   .shop-category{ margin-top:14px; }
   .shop-category:first-of-type{ margin-top:6px; }
   .shop-cat-title{ font-family:'Baloo 2'; font-weight:700; font-size:13.5px; color: var(--chili-deep); text-transform:uppercase; letter-spacing:.04em; margin: 0 0 8px; padding-bottom:5px; border-bottom: 1px dashed var(--rule); }
-  .shop-item{ display:flex; align-items:center; gap:9px; padding: 6px 2px; font-size:14px; color: var(--ink); }
-  .shop-item input{ width:17px; height:17px; accent-color: var(--cardamom); cursor:pointer; flex-shrink:0; }
-  .shop-item label{ flex:1; cursor:pointer; }
-  .shop-item.checked label{ text-decoration: line-through; color: var(--ink-soft); }
+  .shop-item{ display:flex; align-items:center; gap:10px; padding: 7px 2px; font-size:14px; color: var(--ink); }
+  .shop-item .shop-check{ display:none; }
+  .shop-item label{ flex:1; display:flex; align-items:center; gap:10px; cursor:pointer; }
+  .shop-mark{
+    width:20px; height:20px; border-radius:50%; flex-shrink:0;
+    border: 1.5px solid var(--rule); background: var(--card);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:800; color:transparent;
+    transition: background .15s, border-color .15s;
+  }
+  .shop-check:checked + label .shop-mark{
+    background: var(--chili); border-color: var(--chili); color:white;
+  }
+  .shop-check:checked + label .shop-mark::after{ content:"✕"; }
+  .shop-item.checked label .shop-name{ text-decoration: line-through; color: var(--ink-soft); }
   .shop-item .freq{ font-size:11px; color: var(--ink-soft); font-weight:600; flex-shrink:0; }
+  .removed-tag{ font-size:10.5px; font-weight:700; color: var(--chili-deep); background:#FBE0DC; padding:2px 8px; border-radius:999px; flex-shrink:0; white-space:nowrap; }
   .shopping-actions{ display:flex; justify-content:center; gap:10px; margin-top:18px; flex-wrap:wrap; }
 
   .legend{ font-size:12px; color: var(--ink-soft); text-align:center; margin-top:10px; }
@@ -955,13 +967,17 @@ function renderShoppingList(){
   orderedCats.forEach(cat=>{
     html += `<div class="shop-category"><div class="shop-cat-title">${cat}</div>`;
     shoppingList[cat].forEach(item=>{
-      const checked = shoppingChecked[item.name] ? 'checked' : '';
-      const rowClass = shoppingChecked[item.name] ? 'shop-item checked' : 'shop-item';
+      const isChecked = !!shoppingChecked[item.name];
+      const checked = isChecked ? 'checked' : '';
+      const rowClass = isChecked ? 'shop-item checked' : 'shop-item';
       const safeId = 'shop-' + item.name.replace(/[^a-zA-Z0-9]/g,'_');
+      const rightTag = isChecked
+        ? `<span class="removed-tag">✕ Removed from list</span>`
+        : `<span class="freq">used in ${item.count} dish${item.count>1?'es':''}</span>`;
       html += `<div class="${rowClass}">
-        <input type="checkbox" id="${safeId}" data-item="${item.name.replace(/"/g,'&quot;')}" ${checked}>
-        <label for="${safeId}">${item.name}</label>
-        <span class="freq">used in ${item.count} dish${item.count>1?'es':''}</span>
+        <input type="checkbox" id="${safeId}" class="shop-check" data-item="${item.name.replace(/"/g,'&quot;')}" ${checked}>
+        <label for="${safeId}"><span class="shop-mark"></span><span class="shop-name">${item.name}</span></label>
+        ${rightTag}
       </div>`;
     });
     html += `</div>`;
@@ -975,7 +991,7 @@ function renderShoppingList(){
 
   area.innerHTML = html;
 
-  area.querySelectorAll('.shop-item input').forEach(cb=>{
+  area.querySelectorAll('.shop-check').forEach(cb=>{
     cb.addEventListener('change', ()=>{
       shoppingChecked[cb.dataset.item] = cb.checked;
       renderShoppingList();
@@ -994,10 +1010,15 @@ function shoppingListAsText(){
   const kids = document.getElementById('kids').value;
   const servingText = parseInt(kids,10) > 0 ? `${adults} adults + ${kids} kid${kids==1?'':'s'}` : `${adults} adults`;
   const orderedCats = SHOP_CATEGORIES.map(c=>c.name).concat(["Other"]).filter(c => shoppingList[c]);
-  let lines = [`🛒 *Shopping List* — this week's plan (~${servingText})\n`];
+  const removedCount = Object.keys(shoppingChecked).filter(k => shoppingChecked[k]).length;
+  let lines = [`🛒 *Shopping List* — this week's plan (~${servingText})`];
+  if(removedCount > 0) lines.push(`_(${removedCount} item${removedCount>1?'s':''} already at home, left off this list)_`);
+  lines.push('');
   orderedCats.forEach(cat=>{
+    const items = shoppingList[cat].filter(item => !shoppingChecked[item.name]);
+    if(items.length === 0) return;
     lines.push(`*${cat}*`);
-    shoppingList[cat].forEach(item=> lines.push(`  ☐ ${item.name}`));
+    items.forEach(item => lines.push(`  ☐ ${item.name}`));
     lines.push('');
   });
   return lines.join('\n');
