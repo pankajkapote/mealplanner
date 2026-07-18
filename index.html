@@ -171,6 +171,7 @@
   .time-tag{ font-size:11px; font-weight:700; color: var(--ink-soft); }
 
   .reminder-banner{ margin: 0 16px 10px; padding: 8px 12px; background:#FBF0DB; border:1px dashed #E4C48C; border-radius:10px; font-size:12px; color:#8A5A18; }
+  .time-skip-note{ margin: 0 16px 10px; font-size:12px; color: var(--ink-soft); font-style:italic; }
   .reminder-banner div{ padding:2px 0; }
   .reminder-banner div.urgent{ color: var(--chili-deep); font-weight:700; }
   .special-toggle em{ font-style:normal; color: var(--ink-soft); font-weight:500; }
@@ -555,6 +556,20 @@ const MEAL_META = {
   dinner: {label:"Dinner", icon:"🌙"}
 };
 
+/* ---------------- Time-of-day awareness ----------------
+   Only applies to today's card (day index 0). If someone opens this in the
+   evening, there's no point suggesting breakfast or lunch for today — those
+   windows have passed. Future days always show every planned meal as usual. */
+const MEAL_TIME_CUTOFF_HOUR = { breakfast: 10, tiffin: 9, lunch: 15, dinner: 23 };
+function mealsPassedToday(){
+  const hour = new Date().getHours();
+  const passed = new Set();
+  Object.keys(MEAL_TIME_CUTOFF_HOUR).forEach(mealType=>{
+    if(hour >= MEAL_TIME_CUTOFF_HOUR[mealType]) passed.add(mealType);
+  });
+  return passed;
+}
+
 /* ---------------- Home-style base ----------------
    Most Indian households eat roti/bhakri-dal-rice (or the regional equivalent)
    on most days, and only the vegetable side actually changes day to day.
@@ -886,11 +901,11 @@ function computeReminders(){
       if(!recipe.prepAhead) return;
       if(dayIdx === 0){
         if(!dayReminders[0]) dayReminders[0] = [];
-        dayReminders[0].push({urgent:true, text:`${meta.icon} Today's ${meta.label.toLowerCase()} (${recipe.name}) needs: ${recipe.prepAhead}`});
+        dayReminders[0].push({urgent:true, mealType, text:`${meta.icon} Today's ${meta.label.toLowerCase()} (${recipe.name}) needs: ${recipe.prepAhead}`});
       } else {
         const t = dayIdx - 1;
         if(!dayReminders[t]) dayReminders[t] = [];
-        dayReminders[t].push({urgent:false, text:`${meta.icon} Tomorrow's ${meta.label.toLowerCase()} (${recipe.name}) needs: ${recipe.prepAhead}`});
+        dayReminders[t].push({urgent:false, mealType, text:`${meta.icon} Tomorrow's ${meta.label.toLowerCase()} (${recipe.name}) needs: ${recipe.prepAhead}`});
       }
     });
   });
@@ -1090,6 +1105,10 @@ function render(){
     const key = fmtKey(d);
     const tag = EVENTS[key];
     const note = dayNotes[key];
+    const passedToday = dayIdx === 0 ? mealsPassedToday() : new Set();
+    const mealsForThisDay = activeMeals.filter(m => !passedToday.has(m));
+    const skippedLabels = activeMeals.filter(m => passedToday.has(m)).map(m => MEAL_META[m].label);
+
     html += `<div class="day-block">
       <div class="day-title-row">
         <div class="day-title-left">
@@ -1100,11 +1119,16 @@ function render(){
         <button class="day-note-btn" data-day="${dayIdx}">${note ? '✏️ edit note' : '+ add note'}</button>
       </div>
       ${note !== undefined ? `<input class="day-note-input" data-daynote="${dayIdx}" value="${note.replace(/"/g,'&quot;')}" placeholder="e.g. India match tonight, guests coming, fasting day...">` : ''}
-      ${dayReminders[dayIdx] ? `<div class="reminder-banner">${dayReminders[dayIdx].map(r=>`<div class="${r.urgent?'urgent':''}">${r.urgent?'⚠️':'🔔'} ${r.text}</div>`).join('')}</div>` : ''}
+      ${skippedLabels.length ? `<div class="time-skip-note">🕐 ${skippedLabels.join(', ')} already passed for today — showing what's left.</div>` : ''}
+      ${dayReminders[dayIdx] ? (()=>{ const visible = dayReminders[dayIdx].filter(r => !(r.urgent && passedToday.has(r.mealType))); return visible.length ? `<div class="reminder-banner">${visible.map(r=>`<div class="${r.urgent?'urgent':''}">${r.urgent?'⚠️':'🔔'} ${r.text}</div>`).join('')}</div>` : ''; })() : ''}
     `;
+    if(dayIdx === 0 && mealsForThisDay.length === 0){
+      html += `<div class="day-total" style="text-align:left;">That's a wrap for today — here's tomorrow's plan below to help you prep tonight. 🌙</div></div>`;
+      return;
+    }
     const pattern = PATTERNS[getPatternKey()];
     let dayCal = 0;
-    activeMeals.forEach(mealType=>{
+    mealsForThisDay.forEach(mealType=>{
       const recipe = currentPlan[mealType][dayIdx];
       const meta = MEAL_META[mealType];
       const link = recipeLink(recipe.name);
@@ -1223,11 +1247,19 @@ function planAsText(){
     const tag = EVENTS[key] ? `  [${EVENTS[key]}]` : '';
     const note = dayNotes[key] ? `  (${dayNotes[key]})` : '';
     lines.push(`*${d.toLocaleDateString('en-IN',{weekday:'long'})}, ${d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}*${tag}${note}`);
+    const passedToday = dayIdx === 0 ? mealsPassedToday() : new Set();
+    const mealsForThisDay = activeMeals.filter(m => !passedToday.has(m));
+    if(dayIdx === 0 && passedToday.size > 0){
+      const skipped = activeMeals.filter(m => passedToday.has(m)).map(m => MEAL_META[m].label);
+      if(skipped.length) lines.push(`  🕐 ${skipped.join(', ')} already passed for today.`);
+    }
     if(dayReminders[dayIdx]){
-      dayReminders[dayIdx].forEach(r => lines.push(`  ${r.urgent ? '⚠️' : '🔔'} ${r.text}`));
+      dayReminders[dayIdx]
+        .filter(r => !(r.urgent && passedToday.has(r.mealType)))
+        .forEach(r => lines.push(`  ${r.urgent ? '⚠️' : '🔔'} ${r.text}`));
     }
     let dayCal = 0;
-    activeMeals.forEach(mealType=>{
+    mealsForThisDay.forEach(mealType=>{
       const recipe = currentPlan[mealType][dayIdx];
       const mult = pattern[mealType];
       const dispCal = Math.round(recipe.cal * mult);
