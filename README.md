@@ -8,11 +8,33 @@ plus two small serverless functions Vercel runs automatically.
 ## What's in this folder
 ```
 index.html      <- your meal planner page, updated to call /api/visit and /api/like
+manifest.json   <- makes the app installable, with your app name/icon/colors
+sw.js           <- minimal service worker (offline caching + installability)
+icons/          <- app icons at all required sizes (192, 512, maskable, Apple)
 api/visit.js    <- serverless function: increments/reads the visitor counter
 api/like.js     <- serverless function: increments/decrements/reads the like counter
 ```
 Vercel automatically turns anything inside `/api` into a serverless function —
-no extra config needed.
+no extra config needed. `manifest.json`, `sw.js`, and `icons/` just need to sit
+at the root of your deployed site (they already do, in this folder) — nothing
+extra to configure there either.
+
+## "Add to Home Screen" — what your users will see
+Once this is deployed, the site is installable like a real app:
+
+- **Android / Chrome**: visiting the site shows an automatic "Install app"
+  banner/prompt. Tapping it adds a home-screen icon with your logo and the
+  name "Aaj Kya Banaye" — opens full-screen, no browser address bar.
+- **iPhone / Safari**: Apple doesn't allow automatic install prompts, so users
+  need to tap the **Share** icon → **Add to Home Screen**. After that it
+  behaves the same way — proper icon, proper name, full-screen.
+- Once installed, it also works offline for anything already loaded (the
+  service worker caches the app shell), though a live plan generation still
+  needs a connection for the visitor/like counters.
+
+If you want to point people to this without them having to find the button
+themselves, worth adding one line on the page itself later (e.g. "📲 Add this
+to your home screen" with a short how-to) — happy to build that banner if useful.
 
 ## One-time setup (about 5 minutes)
 

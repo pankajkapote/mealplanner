@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aaj Kya Banaye — Weekly Meal Planner</title>
+
+<!-- PWA: installable app icon + standalone display -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#A93226">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
+<!-- iOS-specific: Safari ignores manifest.json, needs these directly -->
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Aaj Kya Banaye">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -35,6 +47,27 @@
     padding: 28px 18px 60px;
   }
   .wrap{max-width: 1000px; margin: 0 auto;}
+
+  .install-banner{
+    position: fixed; left:0; right:0; bottom:0; z-index:60;
+    background: var(--chili-deep); color:#F7EEDD;
+    padding: 10px 14px; display:flex; align-items:center; gap:10px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+    font-size: 13px;
+  }
+  .install-icon{ font-size:18px; flex-shrink:0; }
+  .install-text{ flex:1; line-height:1.35; }
+  .install-action{
+    background: var(--turmeric); color: var(--chili-deep); border:none;
+    font-family:'Baloo 2'; font-weight:700; font-size:12.5px;
+    padding: 7px 14px; border-radius:999px; cursor:pointer; flex-shrink:0;
+  }
+  .install-close{
+    background:none; border:none; color:#F7EEDD; opacity:0.8;
+    font-size:16px; cursor:pointer; flex-shrink:0; padding:2px 4px;
+  }
+  .install-close:hover{ opacity:1; }
+  body.has-install-banner{ padding-bottom: 78px; }
 
   header{ display:flex; align-items:center; gap:18px; margin-bottom: 0; flex-wrap: wrap; }
   .dabba{ width:64px; height:64px; flex-shrink:0; overflow:visible; }
@@ -97,7 +130,7 @@
     to{ transform: translateX(-50%); }
   }
   .food-banner:hover .food-track{ animation-play-state: paused; }
-  @media print{ .food-banner, .header-widgets{ display:none; } }
+  @media print{ .food-banner, .header-widgets, .install-banner, .shopping-panel{ display:none; } }
 
   .setup{ background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 26px; box-shadow: 0 2px 0 var(--rule); }
   .setup-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px 22px; align-items:start; }
@@ -207,6 +240,26 @@
   .btn-secondary:hover{ background: var(--turmeric-soft); }
   .btn-secondary.whatsapp{ background:#EAF6EC; border-color:#B7DEBB; }
   .btn-secondary.whatsapp:hover{ background:#D5EEDA; }
+  .btn-secondary.shopping{ background:#FDEBD8; border-color:#F0C68A; }
+  .btn-secondary.shopping:hover{ background:#FADDBB; }
+
+  .shopping-panel{
+    background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius);
+    padding: 18px 20px; margin-top:20px;
+  }
+  .shopping-head{ display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:6px; }
+  .shopping-head h2{ font-family:'Baloo 2'; font-size:19px; margin:0; color:var(--ink); }
+  .shopping-progress{ font-size:12.5px; color: var(--ink-soft); font-weight:600; }
+  .shopping-note{ font-size:12px; color: var(--ink-soft); margin: 0 0 14px; }
+  .shop-category{ margin-top:14px; }
+  .shop-category:first-of-type{ margin-top:6px; }
+  .shop-cat-title{ font-family:'Baloo 2'; font-weight:700; font-size:13.5px; color: var(--chili-deep); text-transform:uppercase; letter-spacing:.04em; margin: 0 0 8px; padding-bottom:5px; border-bottom: 1px dashed var(--rule); }
+  .shop-item{ display:flex; align-items:center; gap:9px; padding: 6px 2px; font-size:14px; color: var(--ink); }
+  .shop-item input{ width:17px; height:17px; accent-color: var(--cardamom); cursor:pointer; flex-shrink:0; }
+  .shop-item label{ flex:1; cursor:pointer; }
+  .shop-item.checked label{ text-decoration: line-through; color: var(--ink-soft); }
+  .shop-item .freq{ font-size:11px; color: var(--ink-soft); font-weight:600; flex-shrink:0; }
+  .shopping-actions{ display:flex; justify-content:center; gap:10px; margin-top:18px; flex-wrap:wrap; }
 
   .legend{ font-size:12px; color: var(--ink-soft); text-align:center; margin-top:10px; }
 
@@ -240,6 +293,12 @@
 </style>
 </head>
 <body>
+<div id="installBanner" class="install-banner" style="display:none;">
+  <span class="install-icon">📲</span>
+  <span class="install-text" id="installText">Add this app to your home screen for one-tap access.</span>
+  <button class="install-action" id="installActionBtn" style="display:none;">Install</button>
+  <button class="install-close" id="installCloseBtn" aria-label="Dismiss">✕</button>
+</div>
 <div class="wrap">
 
   <header>
@@ -365,7 +424,11 @@
     <button class="btn-secondary whatsapp" id="whatsappBtn">📲 Share on WhatsApp</button>
     <button class="btn-secondary" id="pdfBtn">⬇ Download as PDF</button>
     <button class="btn-secondary" id="copyBtn">📋 Copy as text</button>
+    <button class="btn-secondary shopping" id="shoppingToggleBtn">🛒 Show Shopping List</button>
   </div>
+
+  <div id="shoppingArea" style="display:none;"></div>
+
   <div class="legend" id="legendNote" style="display:none;">🌕 Purnima · 🌑 Amavasya · 🐘 Sankashti Chaturthi · 🙏 Ekadashi (fasting) · 🎉 Festival · 🇮🇳 National holiday — many households go vegetarian on these days. Dates shown are for 2026 as per the standard Hindu Panchang and may shift by a day depending on local sighting/timing.<br>Calorie/protein figures are indicative estimates per serving for everyday planning, not lab-tested nutrition data.<br>⏳ Prep ahead flags things like soaking rajma/chole, fermenting dosa-idli batter, or sprouting matki — with a reminder shown the evening before it's needed.<br>🌦 in season nudges the picker toward vegetables typically at their best this time of year. ♨️/❄️ warming/cooling reflects common traditional/Ayurvedic household belief about food's effect on the body in each season — a gentle nudge, not medical advice.</div>
 
   <div class="credit">Humanity has split the atom, mapped the genome, and put a rover on Mars — yet every single evening, one question still brings entire households to a standstill: <em>"aaj kya banaye?"</em> 🍳 This modest attempt at solving that ancient civilizational crisis was engineered by <strong>Pankaj Kapote</strong>. If it saved you from tonight's kitchen debate — you know who to thank. 🙏</div>
@@ -492,6 +555,15 @@ const BASE_BY_REGION = {
   west:  "Chapati/Bhakri + Varan-Bhaat (Dal-Rice)",
   east:  "Rice + Dal",
   any:   "Roti/Rice + Dal"
+};
+// Ingredient-level staples matching the base line above, so the shopping list
+// includes them even though a sabzi's own ingredient list doesn't repeat them.
+const BASE_INGREDIENTS_BY_REGION = {
+  north: ["Wheat flour", "Toor dal", "Rice"],
+  south: ["Rice", "Toor dal", "Curd"],
+  west:  ["Wheat flour", "Jowar/bajra flour", "Toor dal", "Rice"],
+  east:  ["Rice", "Toor dal"],
+  any:   ["Wheat flour", "Rice", "Toor dal"]
 };
 
 const SABZI = [
@@ -813,6 +885,124 @@ function computeReminders(){
 }
 
 
+/* ---------------- Shopping list ---------------- */
+const SHOP_CATEGORIES = [
+  { name: "Vegetables & Fruits", test: /onion|tomato|potato|garlic|ginger|capsicum|cauliflower|cabbage|spinach|palak|methi|okra|bhindi|eggplant|baingan|vangi|pumpkin|bhopla|gourd|dodka|lauki|karela|beans|gawar|tondli|peas|matar|corn|banana|raw banana|vazhakkai|mushroom|lemon|coriander|curry leaves|green chilli|bell pepper|carrot|cucumber/i },
+  { name: "Dairy & Paneer", test: /curd|paneer|milk|cheese|butter|ghee/i },
+  { name: "Grains, Flours & Pulses", test: /rice|wheat flour|jowar|bajra|rajgira|besan|gram flour|poha|rava|semolina|oats|daliya|sabudana|noodles|pasta|pizza base|bread crumbs|dal|rajma|chole|chickpea|beans \(|moth beans|matki|vaal|sprouts|poppy seeds|posto/i },
+  { name: "Non-Veg & Proteins", test: /chicken|mutton|fish|prawn|egg/i },
+  { name: "Bakery", test: /\bbread\b|\bpav\b|burger bun|tortilla|wrap\b/i },
+  { name: "Spices, Sauces & Condiments", test: /masala|turmeric|cumin|mustard seeds|chutney|sauce|pickle|tamarind|jaggery|sugar|salt|cardamom|coconut|sesame|goda masala|schezwan|soy sauce|salsa|herbs|panch phoron|ajwain|carom/i },
+];
+function categorize(ingredient){
+  for(const cat of SHOP_CATEGORIES){
+    if(cat.test.test(ingredient)) return cat.name;
+  }
+  return "Other";
+}
+
+let shoppingList = {};   // { category: [{name, count}] }
+let shoppingChecked = {}; // { ingredientName: true }
+
+function buildShoppingList(){
+  const counts = {};
+  const region = getRegion();
+  const baseIngredients = BASE_INGREDIENTS_BY_REGION[region] || BASE_INGREDIENTS_BY_REGION.any;
+
+  activeMeals.forEach(mealType=>{
+    (currentPlan[mealType] || []).forEach(recipe=>{
+      if(!recipe) return;
+      (recipe.ing || []).forEach(ing=>{
+        counts[ing] = (counts[ing] || 0) + 1;
+      });
+      if(recipe.isSabzi){
+        baseIngredients.forEach(ing=>{
+          counts[ing] = (counts[ing] || 0) + 1;
+        });
+      }
+    });
+  });
+
+  const grouped = {};
+  Object.keys(counts).sort().forEach(name=>{
+    const cat = categorize(name);
+    if(!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push({name, count: counts[name]});
+  });
+  shoppingList = grouped;
+}
+
+function renderShoppingList(){
+  const area = document.getElementById('shoppingArea');
+  const catNames = Object.keys(shoppingList);
+  if(catNames.length === 0){ area.innerHTML = ''; return; }
+
+  const orderedCats = SHOP_CATEGORIES.map(c=>c.name).concat(["Other"]).filter(c => shoppingList[c]);
+  const totalItems = Object.values(shoppingList).reduce((sum, list) => sum + list.length, 0);
+  const checkedCount = Object.keys(shoppingChecked).filter(k => shoppingChecked[k]).length;
+
+  const adults = document.getElementById('adults').value;
+  const kids = document.getElementById('kids').value;
+  const servingText = parseInt(kids,10) > 0 ? `${adults} adults + ${kids} kid${kids==1?'':'s'}` : `${adults} adults`;
+
+  let html = `<div class="shopping-panel">
+    <div class="shopping-head">
+      <h2>🛒 Shopping List</h2>
+      <span class="shopping-progress">${checkedCount} of ${totalItems} ticked off</span>
+    </div>
+    <p class="shopping-note">For your week's plan (~${servingText}). Ingredients are consolidated across all meals — exact quantities aren't shown since recipes list key ingredients, not measured amounts; the "used in X dishes" count is a rough guide to how much to buy.</p>`;
+
+  orderedCats.forEach(cat=>{
+    html += `<div class="shop-category"><div class="shop-cat-title">${cat}</div>`;
+    shoppingList[cat].forEach(item=>{
+      const checked = shoppingChecked[item.name] ? 'checked' : '';
+      const rowClass = shoppingChecked[item.name] ? 'shop-item checked' : 'shop-item';
+      const safeId = 'shop-' + item.name.replace(/[^a-zA-Z0-9]/g,'_');
+      html += `<div class="${rowClass}">
+        <input type="checkbox" id="${safeId}" data-item="${item.name.replace(/"/g,'&quot;')}" ${checked}>
+        <label for="${safeId}">${item.name}</label>
+        <span class="freq">used in ${item.count} dish${item.count>1?'es':''}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `<div class="shopping-actions">
+      <button class="btn-secondary whatsapp" id="shopWhatsappBtn">📲 Share Shopping List</button>
+      <button class="btn-secondary" id="shopCopyBtn">📋 Copy Shopping List</button>
+    </div>
+  </div>`;
+
+  area.innerHTML = html;
+
+  area.querySelectorAll('.shop-item input').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      shoppingChecked[cb.dataset.item] = cb.checked;
+      renderShoppingList();
+    });
+  });
+  document.getElementById('shopWhatsappBtn').addEventListener('click', ()=>{
+    window.open('https://wa.me/?text=' + encodeURIComponent(shoppingListAsText()), '_blank');
+  });
+  document.getElementById('shopCopyBtn').addEventListener('click', ()=>{
+    navigator.clipboard.writeText(shoppingListAsText()).then(()=> showToast('Shopping list copied to clipboard'));
+  });
+}
+
+function shoppingListAsText(){
+  const adults = document.getElementById('adults').value;
+  const kids = document.getElementById('kids').value;
+  const servingText = parseInt(kids,10) > 0 ? `${adults} adults + ${kids} kid${kids==1?'':'s'}` : `${adults} adults`;
+  const orderedCats = SHOP_CATEGORIES.map(c=>c.name).concat(["Other"]).filter(c => shoppingList[c]);
+  let lines = [`🛒 *Shopping List* — this week's plan (~${servingText})\n`];
+  orderedCats.forEach(cat=>{
+    lines.push(`*${cat}*`);
+    shoppingList[cat].forEach(item=> lines.push(`  ☐ ${item.name}`));
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
 function applyDayOverrides(){
   const funOn = document.getElementById('funSpecials').checked;
   // preferred meal slot to override, in order of what's actually active
@@ -945,6 +1135,8 @@ function render(){
       const current = currentPlan[mealType][day];
       currentPlan[mealType][day] = pickOne(mealType, current.name, day);
       computeReminders();
+      buildShoppingList();
+      if(document.getElementById('shoppingArea').style.display !== 'none') renderShoppingList();
       render();
     });
   });
@@ -979,7 +1171,11 @@ function generatePlan(){
   applyProteinDays();
   applyDayOverrides();
   computeReminders();
+  buildShoppingList();
+  shoppingChecked = {};
   dayNotes = {};
+  document.getElementById('shoppingArea').style.display = 'none';
+  document.getElementById('shoppingToggleBtn').textContent = '🛒 Show Shopping List';
   render();
 }
 
@@ -1043,6 +1239,20 @@ document.getElementById('pdfBtn').addEventListener('click', ()=>{
   };
   showToast('Preparing your PDF…');
   html2pdf().set(opt).from(el).save();
+});
+document.getElementById('shoppingToggleBtn').addEventListener('click', ()=>{
+  const area = document.getElementById('shoppingArea');
+  const btn = document.getElementById('shoppingToggleBtn');
+  const showing = area.style.display !== 'none';
+  if(showing){
+    area.style.display = 'none';
+    btn.textContent = '🛒 Show Shopping List';
+  } else {
+    renderShoppingList();
+    area.style.display = 'block';
+    btn.textContent = '🛒 Hide Shopping List';
+    area.scrollIntoView({behavior:'smooth', block:'start'});
+  }
 });
 
 /* ---------------- Controls ---------------- */
@@ -1160,6 +1370,61 @@ const FOOD_ITEMS = ["🍛 Dal Chawal","🫓 Roti","🥘 Sambar","🍚 Pulao","�
       likeBtn.disabled = false;
     }
   });
+})();
+
+/* ---------------- PWA: service worker registration ---------------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('/sw.js').catch(()=>{ /* fails silently on unsupported hosts */ });
+  });
+}
+
+/* ---------------- Add-to-home-screen banner ---------------- */
+(function installBannerInit(){
+  const banner = document.getElementById('installBanner');
+  const textEl = document.getElementById('installText');
+  const actionBtn = document.getElementById('installActionBtn');
+  const closeBtn = document.getElementById('installCloseBtn');
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const alreadyDismissed = localStorage.getItem('akb_install_dismissed') === 'yes';
+  if(isStandalone || alreadyDismissed) return;
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  let deferredPrompt = null;
+
+  function showBanner(){
+    banner.style.display = 'flex';
+    document.body.classList.add('has-install-banner');
+  }
+  function hideBanner(dismiss){
+    banner.style.display = 'none';
+    document.body.classList.remove('has-install-banner');
+    if(dismiss) localStorage.setItem('akb_install_dismissed', 'yes');
+  }
+
+  if(isIOS){
+    textEl.textContent = 'Add this app to your home screen: tap the Share icon, then "Add to Home Screen".';
+    actionBtn.style.display = 'none';
+    showBanner();
+  } else {
+    window.addEventListener('beforeinstallprompt', (e)=>{
+      e.preventDefault();
+      deferredPrompt = e;
+      textEl.textContent = 'Add this app to your home screen for one-tap access, no browser bar.';
+      actionBtn.style.display = 'inline-block';
+      showBanner();
+    });
+  }
+
+  actionBtn.addEventListener('click', async ()=>{
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    hideBanner(true); // don't ask again regardless of their choice
+  });
+  closeBtn.addEventListener('click', ()=> hideBanner(true));
 })();
 </script>
 </body>
