@@ -102,6 +102,29 @@
   .like-btn.liked #likeIcon{ animation: pop .3s ease; }
   @keyframes pop{ 0%{transform:scale(1);} 50%{transform:scale(1.4);} 100%{transform:scale(1);} }
 
+  .bunting{
+    display:flex; justify-content:space-around; align-items:flex-start;
+    height:20px; overflow:hidden; margin: 10px 2px 0;
+    border-top: 2px dashed #B08D57;
+  }
+  .bunting .flag{
+    width:0; height:0; margin-top:-1px; flex-shrink:0;
+    border-left:9px solid transparent; border-right:9px solid transparent;
+    border-top:15px solid var(--flag-color, var(--turmeric));
+  }
+
+  .festive-banner{
+    display:flex; align-items:center; gap:10px;
+    margin: 12px 0 0; padding: 11px 16px;
+    background: linear-gradient(135deg, #FBEAC7, #F3D48A);
+    border: 1.5px solid #E4B94F; border-radius: var(--radius);
+    font-size: 13.5px; color: #6B4A12;
+  }
+  .festive-emoji{ font-size:19px; flex-shrink:0; }
+  .festive-text{ flex:1; line-height:1.4; font-weight:600; }
+  .festive-close{ background:none; border:none; color:#6B4A12; opacity:0.7; font-size:15px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
+  .festive-close:hover{ opacity:1; }
+
   .food-banner{
     margin: 16px 0 22px;
     overflow: hidden;
@@ -130,7 +153,7 @@
     to{ transform: translateX(-50%); }
   }
   .food-banner:hover .food-track{ animation-play-state: paused; }
-  @media print{ .food-banner, .header-widgets, .install-banner, .shopping-panel{ display:none; } }
+  @media print{ .food-banner, .header-widgets, .install-banner, .shopping-panel, .bunting, .festive-banner{ display:none; } }
 
   .setup{ background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 26px; box-shadow: 0 2px 0 var(--rule); }
   .setup-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px 22px; align-items:start; }
@@ -338,6 +361,14 @@
       </button>
     </div>
   </header>
+
+  <div id="bunting" class="bunting" style="display:none;" aria-hidden="true"></div>
+
+  <div id="festiveBanner" class="festive-banner" style="display:none;">
+    <span class="festive-emoji">🎊</span>
+    <span class="festive-text" id="festiveText"></span>
+    <button class="festive-close" id="festiveCloseBtn" aria-label="Dismiss">✕</button>
+  </div>
 
   <div class="food-banner" aria-hidden="true">
     <div class="food-track" id="foodTrack"></div>
@@ -659,6 +690,11 @@ const FESTIVAL_SPECIALS = {
   "Gudi Padwa": {name:"Puran Poli with Katachi Amti", desc:"Sweet jaggery-dal stuffed flatbread served with a tangy dal broth — the Gudi Padwa spread.", veg:true, region:"west", ing:["Chana dal","Jaggery","Wheat flour","Katachi amti"], cal:420, protein:10, prepTime:45},
   "Makar Sankranti": {name:"Til-Gul Ladoo with Khichdi", desc:"Sesame-jaggery sweets alongside the traditional Sankranti khichdi.", veg:true, region:"west", ing:["Sesame seeds (til)","Jaggery (gul)","Rice","Moong dal"], cal:400, protein:9, prepTime:30},
   "Diwali": {name:"Diwali Faral Platter", desc:"An assorted plate of chivda, chakli & ladoo — the classic Diwali spread.", veg:true, region:"west", ing:["Poha (chivda)","Besan (chakli)","Jaggery/sugar (ladoo)"], cal:420, protein:7, prepTime:40},
+  "Raksha Bandhan": {name:"Narali Bhaat with Puran Poli", desc:"Sweet coconut rice paired with jaggery-stuffed flatbread — the Rakhi & Narali Purnima spread along the Konkan coast.", veg:true, region:"west", ing:["Rice","Fresh coconut","Jaggery","Chana dal"], cal:440, protein:8, prepTime:40},
+  "Onam": {name:"Ada Pradhaman", desc:"Kerala's beloved rice-flake payasam simmered in jaggery and coconut milk — a highlight of the Onam Sadya.", veg:true, region:"south", ing:["Rice flakes (ada)","Jaggery","Coconut milk","Cashews"], cal:380, protein:5, prepTime:40},
+  "Janmashtami": {name:"Makhan Mishri with Sabudana Kheer", desc:"Butter & sugar crystals with a creamy tapioca-pearl kheer — a Janmashtami favourite, kept light for the day's fast.", veg:true, region:"any", ing:["Butter (makhan)","Sugar crystals (mishri)","Sabudana","Milk"], cal:340, protein:6, prepTime:30},
+  "Eid": {name:"Sheer Khurma", desc:"Vermicelli simmered in sweetened milk with dates, nuts & saffron — the iconic Eid dessert.", veg:true, region:"any", ing:["Vermicelli (seviyan)","Milk","Dates","Mixed nuts"], cal:360, protein:7, prepTime:30},
+  "Christmas": {name:"Homemade Plum Cake", desc:"Rich fruit-and-spice cake, a Christmas tradition in Christian households across India.", veg:true, region:"any", ing:["Wheat flour","Dried fruits","Butter","Mixed spices"], cal:400, protein:5, prepTime:60, prepAhead:"Soak dried fruits in advance (overnight, or longer for a richer cake)"},
 };
 const FASTING_KEYWORDS = ["Ekadashi","Chaturthi","Purnima","Amavasya"];
 
@@ -708,6 +744,36 @@ const EVENTS = {
   "2026-12-04":"🙏 Utpanna Ekadashi","2026-12-08":"🌑 Margashirsha Amavasya","2026-12-20":"🙏 Mokshada Ekadashi","2026-12-23":"🌕 Margashirsha Purnima",
   "2026-12-25":"🎄 Christmas","2026-12-26":"🐘 Sankashti Chaturthi"
 };
+
+/* ---------------- Upcoming festival detector ----------------
+   Looks for the nearest festival (past 3 days to next 14 days) that has a
+   configured FESTIVAL_SPECIALS dish, so the festive banner/bunting/food-banner
+   refresh themselves automatically around whichever festival is closest,
+   all year round — not just Rakhi/Ganesh Chaturthi specifically. */
+function getUpcomingFestival(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const WINDOW_BEFORE = 3, WINDOW_AFTER = 14;
+  let best = null;
+  Object.keys(EVENTS).forEach(dateStr=>{
+    const tag = EVENTS[dateStr];
+    const matchKey = Object.keys(FESTIVAL_SPECIALS).find(k => tag.includes(k));
+    if(!matchKey) return;
+    const d = new Date(dateStr + 'T00:00:00');
+    const diffDays = Math.round((d - today) / 86400000);
+    if(diffDays < -WINDOW_BEFORE || diffDays > WINDOW_AFTER) return;
+    if(!best || Math.abs(diffDays) < Math.abs(best.diffDays)){
+      best = { dateStr, tag, diffDays, festivalName: matchKey, dish: FESTIVAL_SPECIALS[matchKey] };
+    }
+  });
+  return best;
+}
+function festivalCountdownLabel(diffDays){
+  if(diffDays === 0) return "today";
+  if(diffDays === 1) return "tomorrow";
+  if(diffDays > 1) return `in ${diffDays} days`;
+  if(diffDays === -1) return "was yesterday";
+  return `was ${Math.abs(diffDays)} days ago`;
+}
 
 let currentPlan = {};
 let activeMeals = ["breakfast","tiffin","lunch","dinner"];
@@ -1242,6 +1308,11 @@ function planAsText(){
   const pattern = PATTERNS[getPatternKey()];
   const region = getRegion();
   let lines = [`🍛 *Weekly Meal Plan* (for ${servingText} · ${getPatternLabel()})\n`];
+  const fest = getUpcomingFestival();
+  if(fest){
+    const cleanName = fest.tag.replace(/^\S+\s*/, '');
+    lines.push(`🎊 ${cleanName} is ${festivalCountdownLabel(fest.diffDays)} — try ${fest.dish.name} this week and share the joy with family & friends! 💛\n`);
+  }
   planDates.forEach((d, dayIdx)=>{
     const key = fmtKey(d);
     const tag = EVENTS[key] ? `  [${EVENTS[key]}]` : '';
@@ -1361,8 +1432,41 @@ const FOOD_ITEMS = ["🍛 Dal Chawal","🫓 Roti","🥘 Sambar","🍚 Pulao","�
   "🌶️ Chole","🥭 Chutney","🍱 Tiffin","🥞 Dosa","🍢 Idli","🧈 Ghee","🍞 Paratha","🥣 Kadhi","🍤 Fish Curry"];
 (function fillBanner(){
   const track = document.getElementById('foodTrack');
-  const html = FOOD_ITEMS.map(f=>`<span>${f}</span>`).join('');
+  let items = FOOD_ITEMS.slice();
+  const fest = getUpcomingFestival();
+  if(fest) items = [`🎊 ${fest.dish.name}`].concat(items);
+  const html = items.map(f=>`<span>${f}</span>`).join('');
   track.innerHTML = html + html; // duplicate for seamless loop
+})();
+
+/* ---------------- Festive mood: bunting + banner ---------------- */
+(function festiveInit(){
+  const fest = getUpcomingFestival();
+  if(!fest) return;
+
+  const buntingEl = document.getElementById('bunting');
+  const colors = ['#FF9933', '#F1E8D6', '#138808', '#C9862E'];
+  let flagsHtml = '';
+  for(let i=0;i<26;i++){
+    flagsHtml += `<span class="flag" style="--flag-color:${colors[i % colors.length]}"></span>`;
+  }
+  buntingEl.innerHTML = flagsHtml;
+  buntingEl.style.display = 'flex';
+
+  const dismissKey = 'akb_festive_dismissed_' + fest.dateStr;
+  if(localStorage.getItem(dismissKey) === 'yes') return;
+
+  const banner = document.getElementById('festiveBanner');
+  const textEl = document.getElementById('festiveText');
+  const cleanName = fest.tag.replace(/^\S+\s*/, ''); // strip the leading emoji
+  const when = festivalCountdownLabel(fest.diffDays);
+  textEl.textContent = `${cleanName} is ${when}! Try ${fest.dish.name} this week and share the joy with family & friends. 💛`;
+  banner.style.display = 'flex';
+
+  document.getElementById('festiveCloseBtn').addEventListener('click', ()=>{
+    banner.style.display = 'none';
+    localStorage.setItem(dismissKey, 'yes');
+  });
 })();
 
 /* ---------------- Visitor count & like button ----------------
