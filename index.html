@@ -153,7 +153,44 @@
     to{ transform: translateX(-50%); }
   }
   .food-banner:hover .food-track{ animation-play-state: paused; }
-  @media print{ .food-banner, .header-widgets, .install-banner, .shopping-panel, .bunting, .festive-banner{ display:none; } }
+  @media print{ .food-banner, .header-widgets, .install-banner, .shopping-panel, .bunting, .festive-banner, .cooknow-panel{ display:none; } }
+
+  .cooknow-panel{
+    background: var(--card); border: 1.5px solid var(--cardamom); border-radius: var(--radius);
+    padding: 18px 22px; margin-bottom: 26px;
+    box-shadow: 0 2px 0 var(--cardamom);
+  }
+  .cooknow-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .cooknow-head h2{ font-family:'Baloo 2'; font-size:19px; margin:0; color:var(--ink); }
+  .cooknow-toggle{
+    background: var(--cardamom); color:white; border:none;
+    font-family:'Baloo 2'; font-weight:700; font-size:13px;
+    padding: 8px 16px; border-radius:999px; cursor:pointer;
+  }
+  .cooknow-toggle:hover{ background:#4C6440; }
+  .cooknow-privacy{ font-size:12.5px; color: var(--ink-soft); margin: 14px 0 12px; line-height:1.5; }
+  .cooknow-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .pantry-count{ font-size:12.5px; font-weight:700; color: var(--cardamom); margin-left:auto; }
+
+  .pantry-cat{ margin-bottom:14px; }
+  .pantry-cat-title{ font-family:'Baloo 2'; font-weight:700; font-size:12.5px; color: var(--chili-deep); text-transform:uppercase; letter-spacing:.04em; margin: 0 0 8px; }
+  .pantry-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+  .pantry-chip{
+    padding: 6px 13px; border-radius:999px; border:1.5px solid var(--rule);
+    background: var(--steel); font-size:12.5px; font-weight:600; color: var(--ink-soft);
+    cursor:pointer; user-select:none; transition: background .15s, border-color .15s, color .15s;
+  }
+  .pantry-chip.have{ background: var(--cardamom); border-color: var(--cardamom); color:white; }
+
+  .cooknow-results{ margin-top:18px; padding-top:16px; border-top: 1px dashed var(--rule); }
+  .cooknow-empty{ text-align:center; color: var(--ink-soft); font-size:13px; padding: 16px 10px; }
+  .cooknow-section-title{ font-family:'Baloo 2'; font-weight:700; font-size:14px; color: var(--ink); margin: 0 0 10px; }
+  .cooknow-card{ background: var(--wheat); border:1px solid var(--rule); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+  .cooknow-card-name{ font-family:'Baloo 2'; font-weight:700; font-size:14.5px; color: var(--ink); margin:0 0 3px; }
+  .cooknow-card-desc{ font-size:12.5px; color: var(--ink-soft); margin:0 0 6px; }
+  .cooknow-card-meta{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; font-size:11px; }
+  .cooknow-tag{ font-weight:700; color: var(--cardamom); text-transform:uppercase; letter-spacing:.03em; }
+  .cooknow-missing{ font-weight:700; color: var(--chili-deep); background:#FBE0DC; padding:2px 8px; border-radius:999px; }
 
   .setup{ background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 26px; box-shadow: 0 2px 0 var(--rule); }
   .setup-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px 22px; align-items:start; }
@@ -372,6 +409,23 @@
 
   <div class="food-banner" aria-hidden="true">
     <div class="food-track" id="foodTrack"></div>
+  </div>
+
+  <div class="cooknow-panel">
+    <div class="cooknow-head">
+      <h2>🍳 What Can I Cook Right Now?</h2>
+      <button class="cooknow-toggle" id="cooknowToggleBtn">Show me</button>
+    </div>
+    <div id="cooknowBody" style="display:none;">
+      <p class="cooknow-privacy">🔒 Tap what's in your kitchen below. Nothing is typed, no account, no login — this list stays only on this device and is never sent anywhere. Clear it anytime.</p>
+      <div class="cooknow-actions">
+        <button class="btn-secondary" id="pantryStaplesBtn">✓ Select common staples</button>
+        <button class="btn-secondary" id="pantryClearBtn">✕ Clear all</button>
+        <span class="pantry-count" id="pantryCount">0 items selected</span>
+      </div>
+      <div id="pantryGrid"></div>
+      <div id="cooknowResults"></div>
+    </div>
   </div>
 
   <div class="setup">
@@ -997,6 +1051,143 @@ function categorize(ingredient){
 let shoppingList = {};   // { category: [{name, count}] }
 let shoppingChecked = {}; // { ingredientName: true }
 
+/* ---------------- Cook Now: "what can I make with what I have" ----------------
+   Entirely client-side and local: the pantry selection lives only in this
+   browser's localStorage, never sent anywhere, no account involved. */
+const COOKNOW_MEAL_LABEL = { breakfast:"Breakfast", tiffin:"Tiffin", lunch:"Lunch", dinner:"Dinner", sabzi:"Sabzi (with dal-rice/roti)", treat:"Weekend Treat" };
+
+function buildCookNowPool(){
+  const pool = [];
+  const seen = new Set();
+  ['breakfast','tiffin','lunch','dinner'].forEach(mt=>{
+    DB[mt].forEach(r=>{
+      if(seen.has(r.name)) return;
+      seen.add(r.name);
+      pool.push(Object.assign({}, r, {sourceMeal: mt}));
+    });
+  });
+  SABZI.forEach(r=>{
+    if(seen.has(r.name)) return;
+    seen.add(r.name);
+    pool.push(Object.assign({}, r, {sourceMeal: 'sabzi'}));
+  });
+  ['lunch','dinner'].forEach(mt=>{
+    (TREATS[mt] || []).forEach(r=>{
+      if(seen.has(r.name)) return;
+      seen.add(r.name);
+      pool.push(Object.assign({}, r, {sourceMeal: 'treat'}));
+    });
+  });
+  return pool;
+}
+const COOKNOW_POOL = buildCookNowPool();
+
+function buildPantryVocabulary(){
+  const counts = {};
+  COOKNOW_POOL.forEach(r=>{
+    (r.ing || []).forEach(i=>{ counts[i] = (counts[i] || 0) + 1; });
+  });
+  return counts;
+}
+const PANTRY_COUNTS = buildPantryVocabulary();
+const PANTRY_STAPLES = Object.keys(PANTRY_COUNTS).sort((a,b)=> PANTRY_COUNTS[b]-PANTRY_COUNTS[a]).slice(0, 10);
+
+let pantrySelected = new Set();
+function loadPantry(){
+  try{
+    const raw = localStorage.getItem('akb_pantry_v1');
+    if(raw) pantrySelected = new Set(JSON.parse(raw));
+  }catch(e){ pantrySelected = new Set(); }
+}
+function savePantry(){
+  try{ localStorage.setItem('akb_pantry_v1', JSON.stringify(Array.from(pantrySelected))); }catch(e){ /* storage unavailable, fail silently */ }
+}
+
+function renderPantryGrid(){
+  const grid = document.getElementById('pantryGrid');
+  const grouped = {};
+  Object.keys(PANTRY_COUNTS).sort().forEach(name=>{
+    const cat = categorize(name);
+    if(!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(name);
+  });
+  const orderedCats = SHOP_CATEGORIES.map(c=>c.name).concat(["Other"]).filter(c=>grouped[c]);
+  let html = '';
+  orderedCats.forEach(cat=>{
+    html += `<div class="pantry-cat"><div class="pantry-cat-title">${cat}</div><div class="pantry-chips">`;
+    grouped[cat].forEach(name=>{
+      const have = pantrySelected.has(name) ? 'have' : '';
+      html += `<span class="pantry-chip ${have}" data-item="${name.replace(/"/g,'&quot;')}">${name}</span>`;
+    });
+    html += `</div></div>`;
+  });
+  grid.innerHTML = html;
+  grid.querySelectorAll('.pantry-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const item = chip.dataset.item;
+      if(pantrySelected.has(item)) pantrySelected.delete(item); else pantrySelected.add(item);
+      chip.classList.toggle('have');
+      savePantry();
+      updatePantryCount();
+      renderCookNowResults();
+    });
+  });
+}
+function updatePantryCount(){
+  const n = pantrySelected.size;
+  document.getElementById('pantryCount').textContent = `${n} item${n===1?'':'s'} selected`;
+}
+
+function computeCookNow(){
+  const ready = [], almost = [];
+  COOKNOW_POOL.forEach(r=>{
+    const ing = r.ing || [];
+    if(ing.length === 0) return;
+    const missing = ing.filter(i => !pantrySelected.has(i));
+    if(missing.length === 0) ready.push(r);
+    else if(missing.length <= 2) almost.push(Object.assign({}, r, {missing}));
+  });
+  ready.sort((a,b)=> a.name.localeCompare(b.name));
+  almost.sort((a,b)=> a.missing.length - b.missing.length || a.name.localeCompare(b.name));
+  return { ready, almost: almost.slice(0, 20) };
+}
+
+function cookNowCard(r, missingHtml){
+  return `<div class="cooknow-card">
+    <p class="cooknow-card-name">${r.name}</p>
+    <p class="cooknow-card-desc">${r.desc}</p>
+    <div class="cooknow-card-meta">
+      <span class="cooknow-tag">${COOKNOW_MEAL_LABEL[r.sourceMeal] || r.sourceMeal}</span>
+      <span>${r.veg ? 'Veg' : 'Non-veg'}</span>
+      <span>⏱ ~${r.prepTime || 20} min</span>
+      ${missingHtml}
+    </div>
+  </div>`;
+}
+
+function renderCookNowResults(){
+  const area = document.getElementById('cooknowResults');
+  if(pantrySelected.size === 0){
+    area.innerHTML = `<div class="cooknow-results"><div class="cooknow-empty">Tap what's in your kitchen above, and dishes you can make will show up here. 🍳</div></div>`;
+    return;
+  }
+  const { ready, almost } = computeCookNow();
+  let html = `<div class="cooknow-results">`;
+  if(ready.length === 0 && almost.length === 0){
+    html += `<div class="cooknow-empty">Nothing matches yet — try selecting a few more staples like onion, tomato, or rice. 🍳</div>`;
+  }
+  if(ready.length){
+    html += `<p class="cooknow-section-title">✅ Ready to cook now (${ready.length})</p>`;
+    ready.forEach(r=> html += cookNowCard(r, ''));
+  }
+  if(almost.length){
+    html += `<p class="cooknow-section-title">🛒 Almost there — just missing a couple things</p>`;
+    almost.forEach(r=> html += cookNowCard(r, `<span class="cooknow-missing">missing: ${r.missing.join(', ')}</span>`));
+  }
+  html += `</div>`;
+  area.innerHTML = html;
+}
+
 function buildShoppingList(){
   const counts = {};
   const region = getRegion();
@@ -1466,6 +1657,36 @@ const FOOD_ITEMS = ["🍛 Dal Chawal","🫓 Roti","🥘 Sambar","🍚 Pulao","�
   document.getElementById('festiveCloseBtn').addEventListener('click', ()=>{
     banner.style.display = 'none';
     localStorage.setItem(dismissKey, 'yes');
+  });
+})();
+
+/* ---------------- Cook Now: init ---------------- */
+(function cookNowInit(){
+  loadPantry();
+  renderPantryGrid();
+  updatePantryCount();
+  renderCookNowResults();
+
+  document.getElementById('cooknowToggleBtn').addEventListener('click', ()=>{
+    const body = document.getElementById('cooknowBody');
+    const btn = document.getElementById('cooknowToggleBtn');
+    const showing = body.style.display !== 'none';
+    body.style.display = showing ? 'none' : 'block';
+    btn.textContent = showing ? 'Show me' : 'Hide';
+  });
+  document.getElementById('pantryStaplesBtn').addEventListener('click', ()=>{
+    PANTRY_STAPLES.forEach(item => pantrySelected.add(item));
+    savePantry();
+    renderPantryGrid();
+    updatePantryCount();
+    renderCookNowResults();
+  });
+  document.getElementById('pantryClearBtn').addEventListener('click', ()=>{
+    pantrySelected.clear();
+    savePantry();
+    renderPantryGrid();
+    updatePantryCount();
+    renderCookNowResults();
   });
 })();
 
