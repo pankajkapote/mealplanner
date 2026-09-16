@@ -179,6 +179,13 @@
   .pantry-type-input:focus{ outline: 2px solid var(--cardamom); outline-offset:1px; }
   .cooknow-priority{ font-weight:700; color: var(--turmeric); }
   .cooknow-uses{ font-size:12px; color: var(--cardamom); font-weight:600; margin:0 0 6px; }
+  .cooknow-more{
+    display:block; width:100%; margin: 4px 0 14px;
+    background: var(--steel); border: 1.5px dashed var(--rule);
+    color: var(--chili-deep); font-family:'Karla'; font-weight:700; font-size:12.5px;
+    padding: 9px 14px; border-radius:10px; cursor:pointer;
+  }
+  .cooknow-more:hover{ background: var(--turmeric-soft); border-style:solid; }
   .pantry-count{ font-size:12.5px; font-weight:700; color: var(--cardamom); margin-left:auto; }
 
   .pantry-cat{ margin-bottom:14px; }
@@ -1198,6 +1205,7 @@ function handleTypedInput(raw){
   saveTypedTerms();
   renderPantryGrid();
   updatePantryCount();
+  resetCookNowPaging();
   renderCookNowResults();
   const bits = [];
   if(matchedCount) bits.push(`marked ${matchedCount}`);
@@ -1234,6 +1242,7 @@ function renderPantryGrid(){
       savePantry();
       saveTypedTerms();
       updatePantryCount();
+      resetCookNowPaging();
       renderCookNowResults();
     });
   });
@@ -1276,9 +1285,9 @@ function computeCookNow(){
     if(missing.length === 0) ready.push(Object.assign({}, r, {priority: pr, keys}));
     else if(missing.length === 1) almost.push(Object.assign({}, r, {missing, priority: pr, keys}));
   });
-  ready.sort((a,b)=> b.priority - a.priority || a.keys.length - b.keys.length || a.name.localeCompare(b.name));
-  almost.sort((a,b)=> b.priority - a.priority || a.name.localeCompare(b.name));
-  return { ready, almost: almost.slice(0, 15) };
+  ready.sort((a,b)=> b.priority - a.priority || b.keys.length - a.keys.length || a.name.localeCompare(b.name));
+  almost.sort((a,b)=> b.priority - a.priority || b.keys.length - a.keys.length || a.name.localeCompare(b.name));
+  return { ready, almost };
 }
 
 function cookNowCard(r, missingHtml){
@@ -1298,6 +1307,11 @@ function cookNowCard(r, missingHtml){
   </div>`;
 }
 
+const COOKNOW_PAGE = 5;            // how many dishes to reveal at a time
+let readyShown = COOKNOW_PAGE;
+let almostShown = COOKNOW_PAGE;
+function resetCookNowPaging(){ readyShown = COOKNOW_PAGE; almostShown = COOKNOW_PAGE; }
+
 function renderCookNowResults(){
   const area = document.getElementById('cooknowResults');
   if(pantrySelected.size === 0 && typedFreeText.length === 0){
@@ -1313,7 +1327,7 @@ function renderCookNowResults(){
       const matches = searchRecipesByText(term);
       if(matches.length){
         html += `<p class="cooknow-section-title">🔎 Matches for "${term}"</p>`;
-        matches.slice(0, 10).forEach(r=> html += cookNowCard(r, ''));
+        matches.slice(0, COOKNOW_PAGE).forEach(r=> html += cookNowCard(r, ''));
       }
     });
   }
@@ -1323,15 +1337,38 @@ function renderCookNowResults(){
     html += `<div class="cooknow-empty">Nothing matches yet — try adding a couple more items like onion, potato or tomato. 🍳</div>`;
   }
   if(ready.length){
-    html += `<p class="cooknow-section-title">✅ Ready to cook now (${ready.length})</p>`;
-    ready.forEach(r=> html += cookNowCard(r, ''));
+    const shown = Math.min(readyShown, ready.length);
+    html += `<p class="cooknow-section-title">✅ Ready to cook now — best matches first (${shown} of ${ready.length})</p>`;
+    ready.slice(0, shown).forEach(r=> html += cookNowCard(r, ''));
+    if(ready.length > shown){
+      html += `<button class="cooknow-more" data-more="ready">Show ${Math.min(COOKNOW_PAGE, ready.length - shown)} more options ▾</button>`;
+    } else if(ready.length > COOKNOW_PAGE){
+      html += `<button class="cooknow-more" data-more="ready-less">Show fewer ▴</button>`;
+    }
   }
   if(almost.length){
-    html += `<p class="cooknow-section-title">🛒 Just one item away</p>`;
-    almost.forEach(r=> html += cookNowCard(r, `<span class="cooknow-missing">missing: ${r.missing.join(', ')}</span>`));
+    const shownA = Math.min(almostShown, almost.length);
+    html += `<p class="cooknow-section-title">🛒 Just one item away (${shownA} of ${almost.length})</p>`;
+    almost.slice(0, shownA).forEach(r=> html += cookNowCard(r, `<span class="cooknow-missing">missing: ${r.missing.join(', ')}</span>`));
+    if(almost.length > shownA){
+      html += `<button class="cooknow-more" data-more="almost">Show ${Math.min(COOKNOW_PAGE, almost.length - shownA)} more options ▾</button>`;
+    } else if(almost.length > COOKNOW_PAGE){
+      html += `<button class="cooknow-more" data-more="almost-less">Show fewer ▴</button>`;
+    }
   }
   html += `</div>`;
   area.innerHTML = html;
+
+  area.querySelectorAll('.cooknow-more').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const what = btn.dataset.more;
+      if(what === 'ready') readyShown += COOKNOW_PAGE;
+      else if(what === 'ready-less') readyShown = COOKNOW_PAGE;
+      else if(what === 'almost') almostShown += COOKNOW_PAGE;
+      else if(what === 'almost-less') almostShown = COOKNOW_PAGE;
+      renderCookNowResults();
+    });
+  });
 }
 
 function buildShoppingList(){
@@ -1779,6 +1816,7 @@ const FOOD_ITEMS = ["🍛 Dal Chawal","🫓 Roti","🥘 Sambar","🍚 Pulao","�
   loadPantry();
   renderPantryGrid();
   updatePantryCount();
+  resetCookNowPaging();
   renderCookNowResults();
 
   document.getElementById('cooknowToggleBtn').addEventListener('click', ()=>{
@@ -1793,6 +1831,7 @@ const FOOD_ITEMS = ["🍛 Dal Chawal","🫓 Roti","🥘 Sambar","🍚 Pulao","�
     savePantry();
     renderPantryGrid();
     updatePantryCount();
+    resetCookNowPaging();
     renderCookNowResults();
   });
   document.getElementById('pantryClearBtn').addEventListener('click', ()=>{
@@ -1803,6 +1842,7 @@ const FOOD_ITEMS = ["🍛 Dal Chawal","🫓 Roti","🥘 Sambar","🍚 Pulao","�
     saveTypedTerms();
     renderPantryGrid();
     updatePantryCount();
+    resetCookNowPaging();
     renderCookNowResults();
   });
   const typeInput = document.getElementById('pantryTypeInput');
