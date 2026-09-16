@@ -170,6 +170,15 @@
   .cooknow-toggle:hover{ background:#4C6440; }
   .cooknow-privacy{ font-size:12.5px; color: var(--ink-soft); margin: 14px 0 12px; line-height:1.5; }
   .cooknow-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .pantry-type-row{ display:flex; align-items:center; gap:6px; }
+  .pantry-type-input{
+    padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--rule);
+    background: var(--steel); font-family:'Karla'; font-size:12.5px; color: var(--ink);
+    width: 200px; max-width: 55vw;
+  }
+  .pantry-type-input:focus{ outline: 2px solid var(--cardamom); outline-offset:1px; }
+  .cooknow-priority{ font-weight:700; color: var(--turmeric); }
+  .cooknow-uses{ font-size:12px; color: var(--cardamom); font-weight:600; margin:0 0 6px; }
   .pantry-count{ font-size:12.5px; font-weight:700; color: var(--cardamom); margin-left:auto; }
 
   .pantry-cat{ margin-bottom:14px; }
@@ -193,14 +202,9 @@
   .cooknow-missing{ font-weight:700; color: var(--chili-deep); background:#FBE0DC; padding:2px 8px; border-radius:999px; }
 
   .setup{ background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 26px; box-shadow: 0 2px 0 var(--rule); }
-  .setup-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px 22px; align-items:start; }
-  @media (max-width: 780px){ .setup-grid{ grid-template-columns: repeat(2, 1fr); } }
+  .setup-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 20px 22px; align-items:start; }
   @media (max-width: 480px){ .setup-grid{ grid-template-columns: 1fr; } }
   .field label{ display:block; font-family:'Baloo 2', sans-serif; font-weight:600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--chili-deep); margin-bottom: 6px; }
-  .stepper{ display:flex; align-items:center; border: 1.5px solid var(--rule); border-radius: 10px; overflow:hidden; background: var(--steel); width: fit-content; }
-  .stepper button{ width: 38px; height: 38px; border:none; background: transparent; font-size: 18px; font-weight:700; color: var(--chili-deep); cursor:pointer; }
-  .stepper button:hover{ background: var(--turmeric-soft); }
-  .stepper input{ width: 46px; text-align:center; border:none; background:transparent; font-family:'Baloo 2'; font-weight:700; font-size:16px; color: var(--ink); }
   select{ width:100%; padding: 9px 10px; border-radius: 10px; border: 1.5px solid var(--rule); background: var(--steel); font-family:'Karla', sans-serif; font-size: 14px; color: var(--ink); }
   .radio-group, .check-group{ display:flex; flex-direction:column; gap:7px; }
   .radio-item, .check-item{ display:flex; align-items:center; gap:8px; font-size:13.5px; color: var(--ink); cursor:pointer; }
@@ -417,9 +421,13 @@
       <button class="cooknow-toggle" id="cooknowToggleBtn">Show me</button>
     </div>
     <div id="cooknowBody" style="display:none;">
-      <p class="cooknow-privacy">🔒 Tap what's in your kitchen below. Nothing is typed, no account, no login — this list stays only on this device and is never sent anywhere. Clear it anytime.</p>
+      <p class="cooknow-privacy">🔒 Tap the fresh items you have in the fridge right now. Spices, flours, rice, dals, oil and other everyday pantry staples are <strong>assumed to be in your kitchen already</strong> — so you only tick the perishables. Nothing is typed unless you want to, no account, no login: this stays only on this device.</p>
       <div class="cooknow-actions">
-        <button class="btn-secondary" id="pantryStaplesBtn">✓ Select common staples</button>
+        <button class="btn-secondary" id="pantryStaplesBtn">✓ I have the usual basics</button>
+        <div class="pantry-type-row">
+          <input type="text" id="pantryTypeInput" class="pantry-type-input" placeholder="Type a vegetable, e.g. cabbage, paneer...">
+          <button class="btn-secondary" id="pantryTypeAddBtn">+ Add</button>
+        </div>
         <button class="btn-secondary" id="pantryClearBtn">✕ Clear all</button>
         <span class="pantry-count" id="pantryCount">0 items selected</span>
       </div>
@@ -430,22 +438,6 @@
 
   <div class="setup">
     <div class="setup-grid">
-      <div class="field">
-        <label for="adults">Adults</label>
-        <div class="stepper">
-          <button type="button" id="adultsMinus">−</button>
-          <input type="text" id="adults" value="3" readonly>
-          <button type="button" id="adultsPlus">+</button>
-        </div>
-      </div>
-      <div class="field">
-        <label for="kids">Kids (below 15)</label>
-        <div class="stepper">
-          <button type="button" id="kidsMinus">−</button>
-          <input type="text" id="kids" value="1" readonly>
-          <button type="button" id="kidsPlus">+</button>
-        </div>
-      </div>
       <div class="field">
         <label>Diet</label>
         <div class="radio-group">
@@ -1082,25 +1074,136 @@ function buildCookNowPool(){
 }
 const COOKNOW_POOL = buildCookNowPool();
 
+/* ---------------- Key ingredients vs assumed pantry staples ----------------
+   An Indian kitchen always has spices, flours, rice, dals, oil and the like.
+   Nobody opens this app wondering whether they have turmeric — they're looking
+   at a half-empty vegetable tray. So matching is done ONLY on key (perishable)
+   ingredients; staples are assumed present and never block a suggestion.
+   Otherwise you get nonsense like "make Baingan Bharta — missing eggplant". */
+
+// Merge the duplicate spellings that exist across the recipe data
+const CANON_INGREDIENT = {
+  "Eggplant (baingan)":"Eggplant", "Spinach (palak)":"Spinach",
+  "Bitter gourd (karela)":"Bitter gourd", "Okra (bhindi)":"Okra",
+  "Ivy gourd (tondli)":"Ivy gourd", "Boiled potato":"Potato",
+  "Fenugreek leaves (methi)":"Fenugreek leaves", "Chicken breast":"Chicken",
+  "Carrot/beans":"Carrot", "Cheese/butter":"Cheese", "Milk/cream":"Milk",
+  "Seasonal vegetable":"Seasonal vegetables", "Sprouts":"Mixed sprouts",
+  "Sprouted moth beans (matki)":"Mixed sprouts",
+  "Dosa batter (rice-urad)":"Dosa batter", "Idli batter (rice-urad)":"Idli batter",
+  "Bread slices":"Bread", "Multigrain bread":"Bread",
+  "Paneer/potato filling":"Paneer", "Veg/cheese patty":"Cheese",
+  "Potato patties":"Potato", "Kidney/black beans":"Rajma (kidney beans)",
+};
+function canonIngredient(name){ return CANON_INGREDIENT[name] || name; }
+
+// Anything matching this is assumed to be in the kitchen already
+const ASSUMED_STAPLE = /ajwain|besan|bhajani|flour|bread crumbs|butter|cardamom|carom|masala|cornflour|cumin|curry leaves|spices|ghee|ginger|garlic|goda|gram flour|green chilli|herbs|jaggery|dal\b|mustard|oil\b|panch phoron|peanuts|pickle|poppy seeds|^rice|semolina|sesame|soy sauce|tamarind|turmeric|coriander|ketchup|sauce|chutney|farsan|sev$|puffed rice|papad|poha|daliya|cooked rice|sambar powder|lentils|oats|pasta|noodles|pizza base|whole spices|coconut|lemon|sugar|salt|chana dal|sabudana|chickpeas|rajma|white peas|field beans|corn$|sweet corn/i;
+
+// Generic placeholders — satisfied when the user has a couple of real vegetables
+const GENERIC_VEG = new Set(["Mixed vegetables","Seasonal vegetables","Salad vegetables"]);
+
+function isKeyIngredient(name){
+  const c = canonIngredient(name);
+  if(/\(optional\)/i.test(c)) return false;   // explicitly optional, never blocks
+  return !ASSUMED_STAPLE.test(c);
+}
+// The perishables a recipe genuinely needs, canonicalised and de-duplicated
+function requiredKeys(recipe){
+  const out = [];
+  (recipe.ing || []).forEach(i=>{
+    if(!isKeyIngredient(i)) return;
+    const c = canonIngredient(i);
+    if(!out.includes(c)) out.push(c);
+  });
+  return out;
+}
+
 function buildPantryVocabulary(){
   const counts = {};
   COOKNOW_POOL.forEach(r=>{
-    (r.ing || []).forEach(i=>{ counts[i] = (counts[i] || 0) + 1; });
+    requiredKeys(r).forEach(i=>{ counts[i] = (counts[i] || 0) + 1; });
   });
   return counts;
 }
 const PANTRY_COUNTS = buildPantryVocabulary();
-const PANTRY_STAPLES = Object.keys(PANTRY_COUNTS).sort((a,b)=> PANTRY_COUNTS[b]-PANTRY_COUNTS[a]).slice(0, 10);
+// Fresh items most likely to actually be at home right now
+const PANTRY_STAPLES = ["Onion","Potato","Tomato","Curd"].filter(i => PANTRY_COUNTS[i]);
 
 let pantrySelected = new Set();
+let typedCanonical = new Set(); // vocab-matched items that were typed (subset of pantrySelected) — get sort priority
+let typedFreeText = [];         // raw typed terms with no vocab match — used for a dedicated search section
+
 function loadPantry(){
   try{
     const raw = localStorage.getItem('akb_pantry_v1');
     if(raw) pantrySelected = new Set(JSON.parse(raw));
   }catch(e){ pantrySelected = new Set(); }
+  try{
+    const raw2 = localStorage.getItem('akb_pantry_typed_v1');
+    if(raw2){
+      const obj = JSON.parse(raw2);
+      typedCanonical = new Set(obj.canonical || []);
+      typedFreeText = obj.freeText || [];
+    }
+  }catch(e){ typedCanonical = new Set(); typedFreeText = []; }
 }
 function savePantry(){
   try{ localStorage.setItem('akb_pantry_v1', JSON.stringify(Array.from(pantrySelected))); }catch(e){ /* storage unavailable, fail silently */ }
+}
+function saveTypedTerms(){
+  try{
+    localStorage.setItem('akb_pantry_typed_v1', JSON.stringify({
+      canonical: Array.from(typedCanonical), freeText: typedFreeText
+    }));
+  }catch(e){ /* storage unavailable, fail silently */ }
+}
+
+function normalizeStr(s){ return s.trim().toLowerCase(); }
+function findVocabMatch(term){
+  const norm = normalizeStr(term);
+  if(!norm) return null;
+  const exact = Object.keys(PANTRY_COUNTS).find(v => normalizeStr(v) === norm);
+  if(exact) return exact;
+  const partial = Object.keys(PANTRY_COUNTS).find(v => normalizeStr(v).includes(norm) || norm.includes(normalizeStr(v)));
+  return partial || null;
+}
+function searchRecipesByText(term){
+  const norm = normalizeStr(term);
+  return COOKNOW_POOL.filter(r=>{
+    const hay = (r.name + ' ' + r.desc + ' ' + (r.ing||[]).join(' ')).toLowerCase();
+    return hay.includes(norm);
+  });
+}
+function handleTypedInput(raw){
+  const terms = raw.split(',').map(t=>t.trim()).filter(Boolean);
+  if(terms.length === 0) return;
+  let matchedCount = 0, newCount = 0, stapleCount = 0;
+  terms.forEach(term=>{
+    const match = findVocabMatch(term);
+    if(match){
+      const c = canonIngredient(match);
+      pantrySelected.add(c);
+      typedCanonical.add(c);
+      matchedCount++;
+    } else if(ASSUMED_STAPLE.test(term)){
+      stapleCount++;   // it's a staple we already assume you have
+    } else {
+      const norm = normalizeStr(term);
+      if(!typedFreeText.includes(norm)) typedFreeText.push(norm);
+      newCount++;
+    }
+  });
+  savePantry();
+  saveTypedTerms();
+  renderPantryGrid();
+  updatePantryCount();
+  renderCookNowResults();
+  const bits = [];
+  if(matchedCount) bits.push(`marked ${matchedCount}`);
+  if(stapleCount) bits.push(`${stapleCount} already assumed in your kitchen`);
+  if(newCount) bits.push(`searching ${newCount}`);
+  if(bits.length) showToast(bits.join(' · '));
 }
 
 function renderPantryGrid(){
@@ -1125,9 +1228,11 @@ function renderPantryGrid(){
   grid.querySelectorAll('.pantry-chip').forEach(chip=>{
     chip.addEventListener('click', ()=>{
       const item = chip.dataset.item;
-      if(pantrySelected.has(item)) pantrySelected.delete(item); else pantrySelected.add(item);
+      if(pantrySelected.has(item)){ pantrySelected.delete(item); typedCanonical.delete(item); }
+      else pantrySelected.add(item);
       chip.classList.toggle('have');
       savePantry();
+      saveTypedTerms();
       updatePantryCount();
       renderCookNowResults();
     });
@@ -1138,28 +1243,56 @@ function updatePantryCount(){
   document.getElementById('pantryCount').textContent = `${n} item${n===1?'':'s'} selected`;
 }
 
+/* How many typed/priority ingredients this recipe uses — higher sorts first
+   within its section, so what the user explicitly typed gets preference. */
+function priorityScore(r){
+  let score = 0;
+  const keys = requiredKeys(r).map(i=>i.toLowerCase());
+  typedCanonical.forEach(c=>{ if(keys.includes(canonIngredient(c).toLowerCase())) score++; });
+  return score;
+}
+
+/* Count of real (non-generic) vegetables the user has — used to satisfy
+   placeholder ingredients like "Mixed vegetables". */
+function realVegCount(){
+  let n = 0;
+  pantrySelected.forEach(i=>{ if(!GENERIC_VEG.has(i)) n++; });
+  return n;
+}
+
 function computeCookNow(){
   const ready = [], almost = [];
+  const vegCount = realVegCount();
   COOKNOW_POOL.forEach(r=>{
-    const ing = r.ing || [];
-    if(ing.length === 0) return;
-    const missing = ing.filter(i => !pantrySelected.has(i));
-    if(missing.length === 0) ready.push(r);
-    else if(missing.length <= 2) almost.push(Object.assign({}, r, {missing}));
+    const keys = requiredKeys(r);
+    const missing = keys.filter(k=>{
+      if(pantrySelected.has(k)) return false;
+      // "Mixed vegetables" is covered if they have a couple of actual vegetables
+      if(GENERIC_VEG.has(k) && vegCount >= 2) return false;
+      return true;
+    });
+    const pr = priorityScore(r);
+    // A dish with no key ingredients at all (e.g. varan-bhaat) is always makeable
+    if(missing.length === 0) ready.push(Object.assign({}, r, {priority: pr, keys}));
+    else if(missing.length === 1) almost.push(Object.assign({}, r, {missing, priority: pr, keys}));
   });
-  ready.sort((a,b)=> a.name.localeCompare(b.name));
-  almost.sort((a,b)=> a.missing.length - b.missing.length || a.name.localeCompare(b.name));
-  return { ready, almost: almost.slice(0, 20) };
+  ready.sort((a,b)=> b.priority - a.priority || a.keys.length - b.keys.length || a.name.localeCompare(b.name));
+  almost.sort((a,b)=> b.priority - a.priority || a.name.localeCompare(b.name));
+  return { ready, almost: almost.slice(0, 15) };
 }
 
 function cookNowCard(r, missingHtml){
+  const priorityHtml = r.priority ? `<span class="cooknow-priority">⭐ uses what you typed</span>` : '';
+  const usesHtml = (r.keys && r.keys.length) ? `<p class="cooknow-uses">Uses: ${r.keys.join(', ')}</p>` : `<p class="cooknow-uses">Uses only pantry staples 🎉</p>`;
   return `<div class="cooknow-card">
     <p class="cooknow-card-name">${r.name}</p>
     <p class="cooknow-card-desc">${r.desc}</p>
+    ${usesHtml}
     <div class="cooknow-card-meta">
       <span class="cooknow-tag">${COOKNOW_MEAL_LABEL[r.sourceMeal] || r.sourceMeal}</span>
       <span>${r.veg ? 'Veg' : 'Non-veg'}</span>
       <span>⏱ ~${r.prepTime || 20} min</span>
+      ${priorityHtml}
       ${missingHtml}
     </div>
   </div>`;
@@ -1167,21 +1300,34 @@ function cookNowCard(r, missingHtml){
 
 function renderCookNowResults(){
   const area = document.getElementById('cooknowResults');
-  if(pantrySelected.size === 0){
-    area.innerHTML = `<div class="cooknow-results"><div class="cooknow-empty">Tap what's in your kitchen above, and dishes you can make will show up here. 🍳</div></div>`;
+  if(pantrySelected.size === 0 && typedFreeText.length === 0){
+    area.innerHTML = `<div class="cooknow-results"><div class="cooknow-empty">Tap the vegetables you have above, and dishes you can make will show up here. 🍳</div></div>`;
     return;
   }
-  const { ready, almost } = computeCookNow();
   let html = `<div class="cooknow-results">`;
-  if(ready.length === 0 && almost.length === 0){
-    html += `<div class="cooknow-empty">Nothing matches yet — try selecting a few more staples like onion, tomato, or rice. 🍳</div>`;
+
+  // Free-text searches (typed terms with no vocab match) get top billing —
+  // this is the "preferential order" for what the user explicitly typed.
+  if(typedFreeText.length){
+    typedFreeText.forEach(term=>{
+      const matches = searchRecipesByText(term);
+      if(matches.length){
+        html += `<p class="cooknow-section-title">🔎 Matches for "${term}"</p>`;
+        matches.slice(0, 10).forEach(r=> html += cookNowCard(r, ''));
+      }
+    });
+  }
+
+  const { ready, almost } = computeCookNow();
+  if(ready.length === 0 && almost.length === 0 && typedFreeText.length === 0){
+    html += `<div class="cooknow-empty">Nothing matches yet — try adding a couple more items like onion, potato or tomato. 🍳</div>`;
   }
   if(ready.length){
     html += `<p class="cooknow-section-title">✅ Ready to cook now (${ready.length})</p>`;
     ready.forEach(r=> html += cookNowCard(r, ''));
   }
   if(almost.length){
-    html += `<p class="cooknow-section-title">🛒 Almost there — just missing a couple things</p>`;
+    html += `<p class="cooknow-section-title">🛒 Just one item away</p>`;
     almost.forEach(r=> html += cookNowCard(r, `<span class="cooknow-missing">missing: ${r.missing.join(', ')}</span>`));
   }
   html += `</div>`;
@@ -1225,16 +1371,13 @@ function renderShoppingList(){
   const totalItems = Object.values(shoppingList).reduce((sum, list) => sum + list.length, 0);
   const checkedCount = Object.keys(shoppingChecked).filter(k => shoppingChecked[k]).length;
 
-  const adults = document.getElementById('adults').value;
-  const kids = document.getElementById('kids').value;
-  const servingText = parseInt(kids,10) > 0 ? `${adults} adults + ${kids} kid${kids==1?'':'s'}` : `${adults} adults`;
 
   let html = `<div class="shopping-panel">
     <div class="shopping-head">
       <h2>🛒 Shopping List</h2>
       <span class="shopping-progress">${checkedCount} of ${totalItems} ticked off</span>
     </div>
-    <p class="shopping-note">For your week's plan (~${servingText}). Ingredients are consolidated across all meals — exact quantities aren't shown since recipes list key ingredients, not measured amounts; the "used in X dishes" count is a rough guide to how much to buy.</p>`;
+    <p class="shopping-note">Ingredients are consolidated across all meals — exact quantities aren't shown since recipes list key ingredients, not measured amounts; the "used in X dishes" count is a rough guide to how much to buy.</p>`;
 
   orderedCats.forEach(cat=>{
     html += `<div class="shop-category"><div class="shop-cat-title">${cat}</div>`;
@@ -1278,12 +1421,9 @@ function renderShoppingList(){
 }
 
 function shoppingListAsText(){
-  const adults = document.getElementById('adults').value;
-  const kids = document.getElementById('kids').value;
-  const servingText = parseInt(kids,10) > 0 ? `${adults} adults + ${kids} kid${kids==1?'':'s'}` : `${adults} adults`;
   const orderedCats = SHOP_CATEGORIES.map(c=>c.name).concat(["Other"]).filter(c => shoppingList[c]);
   const removedCount = Object.keys(shoppingChecked).filter(k => shoppingChecked[k]).length;
-  let lines = [`🛒 *Shopping List* — this week's plan (~${servingText})`];
+  let lines = [`🛒 *Shopping List* — this week's plan`];
   if(removedCount > 0) lines.push(`_(${removedCount} item${removedCount>1?'s':''} already at home, left off this list)_`);
   lines.push('');
   orderedCats.forEach(cat=>{
@@ -1349,13 +1489,10 @@ function render(){
   }
   footer.style.display = 'flex';
   legend.style.display = 'block';
-  const adults = document.getElementById('adults').value;
-  const kids = document.getElementById('kids').value;
-  const servingText = parseInt(kids,10) > 0 ? `~${adults} adults + ${kids} kid${kids==1?'':'s'}` : `~${adults} adults`;
 
   let html = `<div id="planContent"><div class="plan-head">
       <h2>Your next 7 days</h2>
-      <div class="note">Serving size: ${servingText} per meal · ${getPatternLabel()} · tap "🔄 Try another dish" to swap anything</div>
+      <div class="note">${getPatternLabel()} · tap "🔄 Try another dish" to swap anything</div>
     </div>`;
 
   planDates.forEach((d, dayIdx)=>{
@@ -1493,12 +1630,9 @@ function showToast(msg){
 
 /* ---------------- Export helpers ---------------- */
 function planAsText(){
-  const adults = document.getElementById('adults').value;
-  const kids = document.getElementById('kids').value;
-  const servingText = parseInt(kids,10) > 0 ? `~${adults} adults + ${kids} kid${kids==1?'':'s'}` : `~${adults} adults`;
   const pattern = PATTERNS[getPatternKey()];
   const region = getRegion();
-  let lines = [`🍛 *Weekly Meal Plan* (for ${servingText} · ${getPatternLabel()})\n`];
+  let lines = [`🍛 *Weekly Meal Plan* (${getPatternLabel()})\n`];
   const fest = getUpcomingFestival();
   if(fest){
     const cleanName = fest.tag.replace(/^\S+\s*/, '');
@@ -1571,26 +1705,6 @@ document.getElementById('shoppingToggleBtn').addEventListener('click', ()=>{
 });
 
 /* ---------------- Controls ---------------- */
-document.getElementById('adultsMinus').addEventListener('click', ()=>{
-  const input = document.getElementById('adults');
-  input.value = Math.max(1, parseInt(input.value,10)-1);
-  if(Object.keys(currentPlan).length) render();
-});
-document.getElementById('adultsPlus').addEventListener('click', ()=>{
-  const input = document.getElementById('adults');
-  input.value = Math.min(15, parseInt(input.value,10)+1);
-  if(Object.keys(currentPlan).length) render();
-});
-document.getElementById('kidsMinus').addEventListener('click', ()=>{
-  const input = document.getElementById('kids');
-  input.value = Math.max(0, parseInt(input.value,10)-1);
-  if(Object.keys(currentPlan).length) render();
-});
-document.getElementById('kidsPlus').addEventListener('click', ()=>{
-  const input = document.getElementById('kids');
-  input.value = Math.min(10, parseInt(input.value,10)+1);
-  if(Object.keys(currentPlan).length) render();
-});
 document.getElementById('generateBtn').addEventListener('click', generatePlan);
 document.querySelectorAll('input[name="pattern"]').forEach(el=>{
   el.addEventListener('change', ()=>{
@@ -1683,10 +1797,23 @@ const FOOD_ITEMS = ["🍛 Dal Chawal","🫓 Roti","🥘 Sambar","🍚 Pulao","�
   });
   document.getElementById('pantryClearBtn').addEventListener('click', ()=>{
     pantrySelected.clear();
+    typedCanonical.clear();
+    typedFreeText = [];
     savePantry();
+    saveTypedTerms();
     renderPantryGrid();
     updatePantryCount();
     renderCookNowResults();
+  });
+  const typeInput = document.getElementById('pantryTypeInput');
+  function submitTypedInput(){
+    if(!typeInput.value.trim()) return;
+    handleTypedInput(typeInput.value);
+    typeInput.value = '';
+  }
+  document.getElementById('pantryTypeAddBtn').addEventListener('click', submitTypedInput);
+  typeInput.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ e.preventDefault(); submitTypedInput(); }
   });
 })();
 
