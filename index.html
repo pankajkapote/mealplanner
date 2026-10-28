@@ -225,6 +225,26 @@
   .fest-meta{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:11.5px; color: var(--ink-soft); font-weight:700; }
   .fest-diff.easy{ color:#3E5636; } .fest-diff.medium{ color:#8A5A18; } .fest-diff.hard{ color: var(--chili-deep); }
   .fest-empty{ text-align:center; color: var(--ink-soft); font-size:13px; padding:16px 10px; }
+
+  /* faral list: dish picker bar, chips, and list */
+  .faral-bar{ position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:#FFF1CC; border:1.5px solid #E4B94F; border-radius:10px; padding:9px 12px; margin:0 0 10px; }
+  .faral-count{ flex:1 1 200px; font-size:12.5px; font-weight:700; color:#6B4A12; }
+  .faral-bar .btn-secondary:disabled{ opacity:.45; cursor:not-allowed; }
+  .faral-clear{ background:none; border:none; color: var(--chili-deep); font-weight:700; font-size:12px; text-decoration:underline; cursor:pointer; font-family:'Karla'; }
+  .faral-chips{ display:flex; flex-wrap:wrap; gap:7px; margin:0 0 12px; }
+  .faral-chip{ display:inline-flex; align-items:center; gap:6px; background: var(--cardamom-soft); color:#3E5636; border-radius:999px; padding:4px 5px 4px 11px; font-size:12px; font-weight:700; }
+  .faral-chip button{ background: var(--chili); color:white; border:none; border-radius:50%; width:18px; height:18px; font-size:10px; line-height:18px; cursor:pointer; padding:0; }
+  .fest-add-btn{ margin-top:11px; display:inline-flex; align-items:center; gap:6px; font-family:'Karla'; font-weight:700; font-size:12.5px;
+    color: var(--chili-deep); background: var(--turmeric-soft); border:1.5px solid var(--turmeric); border-radius:999px; padding:7px 14px; cursor:pointer; }
+  .fest-add-btn:hover{ background:#F5C77E; }
+  .fest-add-btn.on{ background: var(--cardamom); border-color: var(--cardamom); color:white; }
+  #faralListArea{ scroll-margin-top:70px; }
+  .faral-list{ margin-top:0; margin-bottom:14px; }
+  .faral-start-early{ background:#FBF0DB; border:1px dashed #E4C48C; border-radius:10px; padding:9px 12px; margin:6px 0 12px; font-size:12px; color:#8A5A18; line-height:1.5; }
+  .faral-start-early div{ margin-top:5px; }
+  .shop-text{ display:flex; flex-direction:column; gap:1px; }
+  .shop-for{ font-size:11px; color: var(--ink-soft); font-weight:600; }
   .pantry-count{ font-size:12.5px; font-weight:700; color: var(--cardamom); margin-left:auto; }
 
   .pantry-cat{ margin-bottom:14px; }
@@ -566,6 +586,13 @@
     </div>
     <div id="festBody" style="display:none;">
       <p class="festk-note">Faral is best made ahead — most of these keep for weeks in airtight tins. They are ordered like a prep timeline: dishes that need lead time first, quick-spoiling sweets last. Make a little extra and share it with family, friends and neighbours. 💛</p>
+      <div class="faral-bar" id="faralBar">
+        <span class="faral-count" id="faralCount"></span>
+        <button class="btn-secondary shopping" id="faralViewBtn" disabled>🛒 My faral shopping list</button>
+        <button class="faral-clear" id="faralClearBtn" style="display:none;">Clear</button>
+      </div>
+      <div class="faral-chips" id="faralChips"></div>
+      <div id="faralListArea" style="display:none;"></div>
       <div class="festk-filters">
         <div class="festk-filter">
           <label for="festRegion">Region</label>
@@ -1955,36 +1982,36 @@ const FESTIVE_ITEMS = [
    desc:"Roasted semolina and dry coconut bound with sugar syrup or warm milk — soft, crumbly and a family favourite.",
    ing:["Rava (semolina)","Ghee","Sugar","Dry coconut","Cardamom","Raisins"],
    tip:"Take the syrup to one-string consistency so the ladoos hold their shape."},
-  {name:"Chakli (Bhajani)", region:"maharashtra", type:"savoury", diff:"Needs practice", prepTime:60, keeps:"3–4 weeks", keepDays:25,
+  {name:"Chakli (Bhajani)", region:"maharashtra", type:"savoury", diff:"Needs practice", prepTime:60, fry:true, keeps:"3–4 weeks", keepDays:25,
    desc:"Crunchy spiral snack made from roasted multigrain flour, pressed through a chakli press and deep-fried.",
    ing:["Bhajani (roasted multigrain flour)","Sesame","Cumin","Chilli powder","Oil"],
    tip:"Needs a chakli press (sorya). Keep the dough soft but not sticky and fry on medium heat."},
-  {name:"Pohe Chivda", region:"maharashtra", type:"savoury", diff:"Easy", prepTime:30, keeps:"3–4 weeks", keepDays:25,
+  {name:"Pohe Chivda", region:"maharashtra", type:"savoury", diff:"Easy", prepTime:30, fry:true, keeps:"3–4 weeks", keepDays:25,
    desc:"Light, crunchy poha mixture with peanuts, roasted chana, curry leaves and coconut slivers — the heart of the faral plate.",
    ing:["Thin poha","Peanuts","Roasted chana (daliya)","Curry leaves","Dry coconut slices","Sugar"],
    tip:"Use thin (patla) poha and let the mixture cool completely before storing it airtight."},
-  {name:"Shankarpale", region:"maharashtra", type:"sweet", diff:"Medium", prepTime:50, keeps:"about 3 weeks", keepDays:21,
+  {name:"Shankarpale", region:"maharashtra", type:"sweet", diff:"Medium", prepTime:50, fry:true, keeps:"about 3 weeks", keepDays:21,
    desc:"Crisp, diamond-shaped, lightly sweet biscuits — buttery and made to be munched by the handful.",
    ing:["Maida / wheat flour","Ghee","Sugar","Milk"],
    tip:"Roll the dough to an even thickness and fry on low heat for a uniform golden colour."},
-  {name:"Anarsa", region:"maharashtra", type:"sweet", diff:"Needs practice", prepTime:45, keeps:"about 2 weeks", keepDays:14,
+  {name:"Anarsa", region:"maharashtra", type:"sweet", diff:"Needs practice", prepTime:45, fry:true, keeps:"about 2 weeks", keepDays:14,
    desc:"A traditional rice-and-jaggery sweet, coated in poppy seeds — lacy and crisp outside, soft inside.",
    ing:["Rice","Jaggery","Poppy seeds (khus khus)","Ghee / oil"],
    ahead:"Needs roughly a week of lead time: soak the rice for 3 days (changing the water daily), dry and grind it, then rest the jaggery dough for 3–4 days before frying.",
    leadDays:8},
-  {name:"Besan Shev (Namkin Shev)", region:"maharashtra", type:"savoury", diff:"Medium", prepTime:40, keeps:"3–4 weeks", keepDays:25,
+  {name:"Besan Shev (Namkin Shev)", region:"maharashtra", type:"savoury", diff:"Medium", prepTime:40, fry:true, keeps:"3–4 weeks", keepDays:25,
    desc:"Crunchy gram-flour vermicelli pressed through a sev maker and fried — eaten on its own and tossed into chivda and bhel.",
    ing:["Besan","Ajwain","Turmeric","Chilli powder","Oil"],
    tip:"Keep the dough soft; hot oil at the right temperature gives thin, crisp strands."},
-  {name:"Karanji", region:"maharashtra", type:"sweet", diff:"Medium", prepTime:60, keeps:"about 2 weeks", keepDays:14,
+  {name:"Karanji", region:"maharashtra", type:"sweet", diff:"Medium", prepTime:60, fry:true, keeps:"about 2 weeks", keepDays:14,
    desc:"Crisp half-moon pastries filled with sweet dry coconut and cardamom.",
    ing:["Maida","Dry coconut","Sugar / jaggery","Cardamom","Poppy seeds","Ghee"],
    tip:"Seal the edges tightly (a karanji cutter helps) so the filling doesn't leak while frying."},
-  {name:"Chirote", region:"maharashtra", type:"sweet", diff:"Needs practice", prepTime:60, keeps:"about 1 week (delicate)", keepDays:7,
+  {name:"Chirote", region:"maharashtra", type:"sweet", diff:"Needs practice", prepTime:60, fry:true, keeps:"about 1 week (delicate)", keepDays:7,
    desc:"Delicate, layered, flaky pastry fried crisp and dusted with powdered sugar.",
    ing:["Maida","Ghee","Rice flour","Powdered sugar"],
    tip:"The layers come from rolling the dough with a ghee-and-rice-flour paste — keep them thin and even."},
-  {name:"Kadboli", region:"maharashtra", type:"savoury", diff:"Medium", prepTime:60, keeps:"3–4 weeks", keepDays:25,
+  {name:"Kadboli", region:"maharashtra", type:"savoury", diff:"Medium", prepTime:60, fry:true, keeps:"3–4 weeks", keepDays:25,
    desc:"Crunchy ring-shaped savoury snack made from a mix of grain flours and spices, fried until crisp.",
    ing:["Mixed grain flours","Sesame","Cumin","Chilli powder","Oil"],
    tip:"Fry on medium-low heat so the rings turn crisp all the way through."},
@@ -1994,15 +2021,15 @@ const FESTIVE_ITEMS = [
    desc:"Rich gram-flour fudge set in a tray and cut into squares — a Gujarati Diwali and New Year staple.",
    ing:["Coarse besan","Ghee","Sugar","Milk","Cardamom","Nuts"],
    tip:"Rub a little milk and ghee into the besan first for the signature grainy texture."},
-  {name:"Gathiya", region:"gujarat", type:"savoury", diff:"Medium", prepTime:40, keeps:"2–3 weeks", keepDays:18,
+  {name:"Gathiya", region:"gujarat", type:"savoury", diff:"Medium", prepTime:40, fry:true, keeps:"2–3 weeks", keepDays:18,
    desc:"Soft-crunchy gram-flour strips seasoned with ajwain and pepper — usually served with fried chillies and chutney.",
    ing:["Besan","Ajwain","Black pepper","Papad khar (or a pinch of baking soda)","Oil"],
    tip:"Knead the dough well — it is what gives gathiya its soft crunch."},
-  {name:"Chorafali", region:"gujarat", type:"savoury", diff:"Medium", prepTime:45, keeps:"about 3 weeks", keepDays:21,
+  {name:"Chorafali", region:"gujarat", type:"savoury", diff:"Medium", prepTime:45, fry:true, keeps:"about 3 weeks", keepDays:21,
    desc:"Paper-thin, crisp Gujarati Diwali snack, traditionally served with chutney and fried green chillies.",
    ing:["Urad dal flour","Besan","Papad khar","Salt","Oil"],
    tip:"Roll the dough very thin and fry quickly on medium heat."},
-  {name:"Ghughra", region:"gujarat", type:"sweet", diff:"Medium", prepTime:60, keeps:"about 2 weeks", keepDays:14,
+  {name:"Ghughra", region:"gujarat", type:"sweet", diff:"Medium", prepTime:60, fry:true, keeps:"about 2 weeks", keepDays:14,
    desc:"Half-moon fried pastry stuffed with khoya and dry fruits — Gujarat's cousin of Karanji and Gujiya.",
    ing:["Maida","Khoya (mawa)","Dry fruits","Sugar","Cardamom","Ghee / oil"],
    tip:"Roast the khoya filling and let it cool fully before filling, or the pastry turns soggy."},
@@ -2012,7 +2039,7 @@ const FESTIVE_ITEMS = [
    desc:"Smooth cashew fudge rolled thin and cut into diamonds — the classic Diwali gifting sweet.",
    ing:["Cashews","Sugar","Ghee","Cardamom"],
    tip:"Grind the cashews in short bursts so they don't turn oily."},
-  {name:"Balushahi", region:"north", type:"sweet", diff:"Needs practice", prepTime:60, keeps:"1–2 weeks", keepDays:10,
+  {name:"Balushahi", region:"north", type:"sweet", diff:"Needs practice", prepTime:60, fry:true, keeps:"1–2 weeks", keepDays:10,
    desc:"Flaky, doughnut-like sweet fried low and slow, then dunked in sugar syrup.",
    ing:["Maida","Ghee","Curd","Sugar","Cardamom"],
    tip:"Fry on low heat so the inside cooks through before the outside darkens."},
@@ -2020,25 +2047,25 @@ const FESTIVE_ITEMS = [
    desc:"Flaky, thread-like sweet that melts in the mouth — a festive gifting favourite.",
    ing:["Besan","Maida","Ghee","Sugar","Cardamom"],
    tip:"Pulling the hot sugar syrup into threads is the tricky part — keep everything ready before you start."},
-  {name:"Mathri", region:"north", type:"savoury", diff:"Easy", prepTime:45, keeps:"3–4 weeks", keepDays:25,
+  {name:"Mathri", region:"north", type:"savoury", diff:"Easy", prepTime:45, fry:true, keeps:"3–4 weeks", keepDays:25,
    desc:"Flaky, crisp savoury discs seasoned with ajwain and pepper — perfect with tea.",
    ing:["Maida","Ajwain","Ghee / oil","Black pepper"],
    tip:"Fry slowly on low heat; they crisp up further as they cool."},
-  {name:"Namak Pare", region:"north", type:"savoury", diff:"Easy", prepTime:35, keeps:"3–4 weeks", keepDays:25,
+  {name:"Namak Pare", region:"north", type:"savoury", diff:"Easy", prepTime:35, fry:true, keeps:"3–4 weeks", keepDays:25,
    desc:"Crispy diamond-shaped savoury snack — the salty counterpart to shankarpale.",
    ing:["Maida","Ajwain","Oil","Salt"],
    tip:"A little ghee in the dough keeps them short and crisp."},
-  {name:"Gulab Jamun", region:"north", type:"sweet", diff:"Medium", prepTime:50, keeps:"3–4 days (refrigerate)", keepDays:4,
+  {name:"Gulab Jamun", region:"north", type:"sweet", diff:"Medium", prepTime:50, fry:true, keeps:"3–4 days (refrigerate)", keepDays:4,
    desc:"Soft milk-solid dumplings soaked in cardamom-scented syrup.",
    ing:["Khoya / milk powder","Sugar","Cardamom","Ghee / oil"],
    tip:"Fry on low heat and keep the syrup warm, not boiling, when the jamuns go in."},
 
   // ----- South India -----
-  {name:"Murukku", region:"south", type:"savoury", diff:"Medium", prepTime:60, keeps:"about 3 weeks", keepDays:21,
+  {name:"Murukku", region:"south", type:"savoury", diff:"Medium", prepTime:60, fry:true, keeps:"about 3 weeks", keepDays:21,
    desc:"Spiral snack from rice and urad dal flours — Tamil Nadu's answer to the chakli.",
    ing:["Rice flour","Urad dal flour","Butter","Cumin / sesame","Oil"],
    tip:"Press straight into hot oil and drain well; let them cool before storing."},
-  {name:"Adhirasam", region:"south", type:"sweet", diff:"Needs practice", prepTime:60, keeps:"about 2 weeks", keepDays:14,
+  {name:"Adhirasam", region:"south", type:"sweet", diff:"Needs practice", prepTime:60, fry:true, keeps:"about 2 weeks", keepDays:14,
    desc:"Deep-fried rice-and-jaggery disc — a Tamil Deepavali tradition.",
    ing:["Rice flour","Jaggery","Cardamom","Sesame / dry ginger","Ghee / oil"],
    ahead:"Rest the jaggery dough overnight (up to 2 days) for the right texture.",
@@ -2047,7 +2074,7 @@ const FESTIVE_ITEMS = [
    desc:"Rich, melt-in-the-mouth gram-flour and ghee sweet from Karnataka.",
    ing:["Besan","Ghee","Sugar"],
    tip:"Add hot ghee gradually and keep stirring — the mixture should froth."},
-  {name:"Ariselu", region:"south", type:"sweet", diff:"Needs practice", prepTime:60, keeps:"about 2 weeks", keepDays:14,
+  {name:"Ariselu", region:"south", type:"sweet", diff:"Needs practice", prepTime:60, fry:true, keeps:"about 2 weeks", keepDays:14,
    desc:"Andhra rice-and-jaggery discs studded with sesame, made for Diwali and Sankranti.",
    ing:["Rice","Jaggery","Sesame seeds","Ghee / oil"],
    ahead:"Soak and shade-dry the rice, then grind it into flour a day ahead.",
@@ -2070,11 +2097,11 @@ const FESTIVE_ITEMS = [
    desc:"Bengali coconut ladoos, soft and chewy, made for Lakshmi Puja and festivals.",
    ing:["Coconut","Jaggery / sugar","Cardamom"],
    tip:"Cook the coconut with jaggery just until it comes together — it firms up as it cools."},
-  {name:"Nimki", region:"east", type:"savoury", diff:"Easy", prepTime:35, keeps:"about 3 weeks", keepDays:21,
+  {name:"Nimki", region:"east", type:"savoury", diff:"Easy", prepTime:35, fry:true, keeps:"about 3 weeks", keepDays:21,
    desc:"Crisp Bengali diamonds flavoured with kalonji — a festive tea-time snack.",
    ing:["Maida","Kalonji (nigella seeds)","Oil","Salt"],
    tip:"Fry on medium-low heat so they turn crisp and evenly golden."},
-  {name:"Thekua", region:"east", type:"sweet", diff:"Medium", prepTime:45, keeps:"2–3 weeks", keepDays:18,
+  {name:"Thekua", region:"east", type:"sweet", diff:"Medium", prepTime:45, fry:true, keeps:"2–3 weeks", keepDays:18,
    desc:"Crunchy, jaggery-sweet cookie from Bihar, the signature Chhath Puja prasad.",
    ing:["Wheat flour","Jaggery","Ghee","Coconut","Fennel (saunf)"],
    tip:"Use a firm dough and fry on low heat so it stays crunchy for weeks."},
@@ -2150,6 +2177,7 @@ function festCard(item, daysToDiwali){
       <a class="recipe-link" href="${link}" target="_blank" rel="noopener">🔗 View recipe</a>
       <button class="copy-link-btn" data-link="${link}">📎 copy link</button>
     </div>
+    <button class="fest-add-btn${faralSel.has(item.name) ? ' on' : ''}" data-faral="${item.name.replace(/"/g,'&quot;')}" title="Tap again to remove">${faralSel.has(item.name) ? '✓ In my faral list' : '+ Add to my faral list'}</button>
   </div>`;
 }
 
@@ -2185,13 +2213,209 @@ function renderFestResults(){
       navigator.clipboard.writeText(btn.dataset.link).then(()=> showToast('Recipe link copied'));
     });
   });
+  area.querySelectorAll('.fest-add-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const dish = btn.dataset.faral;
+      if(faralSel.has(dish)){ faralSel.delete(dish); btn.classList.remove('on'); btn.textContent = '+ Add to my faral list'; }
+      else { faralSel.add(dish); btn.classList.add('on'); btn.textContent = '✓ In my faral list'; }
+      saveFaral();
+      updateFaralBar();
+    });
+  });
+}
+
+
+/* ---------------- Faral shopping list ----------------
+   Unlike everyday cooking, faral is made in big batches, so staples (ghee,
+   sugar, besan, maida...) ARE listed — you tick what you already have.
+   Raw ingredient wording in the dish data is normalised so "Besan" and
+   "Besan (gram flour)" or "Ghee / oil" don't show up as separate items. */
+const FARAL_CANON = {
+  "Ajwain":["Ajwain (carom seeds)"], "Besan":["Besan (gram flour)"], "Besan (gram flour)":["Besan (gram flour)"],
+  "Bhajani (roasted multigrain flour)":["Bhajani flour (for chakli)"], "Black pepper":["Black pepper"], "Butter":["Butter"],
+  "Cardamom":["Cardamom (elaichi)"], "Cashews":["Cashews"], "Chenna":["Fresh chenna (or full-fat milk)"],
+  "Chenna (fresh paneer)":["Fresh chenna (or full-fat milk)"], "Chilli powder":["Red chilli powder"],
+  "Coarse besan":["Coarse besan (ladoo besan)"], "Coconut":["Coconut (fresh or desiccated)"], "Cumin":["Cumin seeds"],
+  "Cumin / sesame":["Cumin seeds"], "Curd":["Curd"], "Curry leaves":["Curry leaves"], "Dry coconut":["Dry coconut (kopra)"],
+  "Dry coconut slices":["Dry coconut (kopra)"], "Dry fruits":["Mixed dry fruits"], "Fennel (saunf)":["Fennel seeds (saunf)"],
+  "Ghee":["Ghee"], "Ghee / oil":["Cooking / frying oil"], "Jaggery":["Jaggery"], "Jaggery / sugar":["Jaggery"],
+  "Kalonji (nigella seeds)":["Kalonji (nigella seeds)"], "Khoya (mawa)":["Khoya (mawa)"], "Khoya / milk powder":["Khoya (mawa)"],
+  "Maida":["Maida"], "Maida / wheat flour":["Maida"], "Milk":["Milk"], "Mixed grain flours":["Mixed grain flours (for kadboli)"],
+  "Nuts":["Mixed nuts"], "Oil":["Cooking / frying oil"], "Papad khar":["Papad khar"],
+  "Papad khar (or a pinch of baking soda)":["Papad khar"], "Peanuts":["Peanuts"], "Poppy seeds":["Poppy seeds (khus khus)"],
+  "Poppy seeds (khus khus)":["Poppy seeds (khus khus)"], "Powdered sugar":["Sugar"], "Raisins":["Raisins"],
+  "Rava (semolina)":["Rava (semolina)"], "Rice":["Rice"], "Rice flour":["Rice flour"],
+  "Roasted chana (daliya)":["Roasted chana (daliya)"], "Rose water":["Rose water"], "Saffron":["Saffron (kesar)"],
+  "Salt":["Salt"], "Sesame":["Sesame seeds"], "Sesame / dry ginger":["Sesame seeds"], "Sesame seeds":["Sesame seeds"],
+  "Sugar":["Sugar"], "Sugar / jaggery":["Sugar"], "Thin poha":["Thin poha"], "Turmeric":["Turmeric powder"],
+  "Urad dal flour":["Urad dal flour"], "Wheat flour":["Wheat flour (atta)"]
+};
+const FARAL_CAT_ORDER = ["Flours, Rice & Grains","Sugar & Jaggery","Dairy, Ghee & Milk","Dry Fruits, Nuts, Seeds & Coconut","Spices & Flavourings","Frying Oil"];
+const FARAL_CAT = {};
+[
+ ["Flours, Rice & Grains", ["Besan (gram flour)","Coarse besan (ladoo besan)","Bhajani flour (for chakli)","Mixed grain flours (for kadboli)","Maida","Wheat flour (atta)","Rava (semolina)","Rice","Rice flour","Urad dal flour","Thin poha","Roasted chana (daliya)"]],
+ ["Sugar & Jaggery", ["Sugar","Jaggery"]],
+ ["Dairy, Ghee & Milk", ["Ghee","Butter","Milk","Curd","Khoya (mawa)","Fresh chenna (or full-fat milk)"]],
+ ["Dry Fruits, Nuts, Seeds & Coconut", ["Cashews","Mixed nuts","Mixed dry fruits","Raisins","Peanuts","Dry coconut (kopra)","Coconut (fresh or desiccated)","Sesame seeds","Poppy seeds (khus khus)"]],
+ ["Spices & Flavourings", ["Cardamom (elaichi)","Ajwain (carom seeds)","Black pepper","Red chilli powder","Cumin seeds","Turmeric powder","Fennel seeds (saunf)","Kalonji (nigella seeds)","Saffron (kesar)","Rose water","Papad khar","Curry leaves","Salt"]],
+ ["Frying Oil", ["Cooking / frying oil"]]
+].forEach(([cat, names]) => names.forEach(n => FARAL_CAT[n] = cat));
+const FRY_OIL = "Cooking / frying oil";
+
+let faralSel = new Set();    // dishes the user will make
+let faralHave = new Set();   // ingredients already at home (come off the list)
+let faralListOpen = false;
+
+function loadFaral(){
+  const valid = new Set(FESTIVE_ITEMS.map(i => i.name));
+  try{ faralSel = new Set(JSON.parse(localStorage.getItem('akb_faral_sel_v1') || '[]').filter(n => valid.has(n))); }catch(e){ faralSel = new Set(); }
+  try{ faralHave = new Set(JSON.parse(localStorage.getItem('akb_faral_have_v1') || '[]')); }catch(e){ faralHave = new Set(); }
+}
+function saveFaral(){
+  try{
+    localStorage.setItem('akb_faral_sel_v1', JSON.stringify(Array.from(faralSel)));
+    localStorage.setItem('akb_faral_have_v1', JSON.stringify(Array.from(faralHave)));
+  }catch(e){ /* storage unavailable, fail silently */ }
+}
+function faralCanon(raw){ return FARAL_CANON[raw] || [raw]; }
+
+function buildFaralList(){
+  const byItem = {};
+  const add = (name, dish) => {
+    if(!byItem[name]) byItem[name] = { name, dishes: [] };
+    if(!byItem[name].dishes.includes(dish)) byItem[name].dishes.push(dish);
+  };
+  FESTIVE_ITEMS.filter(i => faralSel.has(i.name)).forEach(it=>{
+    it.ing.forEach(raw => faralCanon(raw).forEach(c => add(c, it.name)));
+    if(it.fry) add(FRY_OIL, it.name);
+  });
+  const grouped = {};
+  Object.values(byItem).sort((a,b) => a.name.localeCompare(b.name)).forEach(x=>{
+    const cat = FARAL_CAT[x.name] || 'Other';
+    (grouped[cat] = grouped[cat] || []).push(x);
+  });
+  return grouped;
+}
+function faralOrderedCats(grouped){ return FARAL_CAT_ORDER.concat(['Other']).filter(c => grouped[c]); }
+function faralStartEarly(){
+  const dd = daysToDiwaliNear();
+  return FESTIVE_ITEMS.filter(i => faralSel.has(i.name) && i.ahead).map(i => ({ name: i.name, text: festLeadMessage(i, dd) }));
+}
+
+function renderFaralList(){
+  const area = document.getElementById('faralListArea');
+  if(faralSel.size === 0){ area.innerHTML = ''; return; }
+  const grouped = buildFaralList();
+  const cats = faralOrderedCats(grouped);
+  const total = cats.reduce((n,c) => n + grouped[c].length, 0);
+  const removed = cats.reduce((n,c) => n + grouped[c].filter(x => faralHave.has(x.name)).length, 0);
+  const early = faralStartEarly();
+
+  let html = `<div class="shopping-panel faral-list">
+    <div class="shopping-head">
+      <h2>🛒 Faral Shopping List</h2>
+      <span class="shopping-progress">${removed} of ${total} already at home</span>
+    </div>
+    <p class="shopping-note"><b>For:</b> ${Array.from(faralSel).join(', ')}.<br>Faral is made in big batches, so everyday staples like ghee, sugar and besan are included — tap anything you already have and it comes off the list. Exact quantities aren't shown (they depend on how much you make), and only each dish's key ingredients are listed, so glance at your own recipe for small extras.</p>`;
+  if(early.length){
+    html += `<div class="faral-start-early"><b>⏳ Start early</b>` + early.map(e => `<div><b>${e.name}:</b> ${e.text}</div>`).join('') + `</div>`;
+  }
+  cats.forEach(cat=>{
+    html += `<div class="shop-category"><div class="shop-cat-title">${cat}</div>`;
+    grouped[cat].forEach(item=>{
+      const isHave = faralHave.has(item.name);
+      const safeId = 'faral-' + item.name.replace(/[^a-zA-Z0-9]/g, '_');
+      html += `<div class="shop-item${isHave ? ' checked' : ''}">
+        <input type="checkbox" id="${safeId}" class="shop-check" data-item="${item.name.replace(/"/g,'&quot;')}" ${isHave ? 'checked' : ''}>
+        <label for="${safeId}"><span class="shop-mark"></span><span class="shop-text"><span class="shop-name">${item.name}</span><span class="shop-for">for ${item.dishes.join(', ')}</span></span></label>
+        ${isHave ? '<span class="removed-tag">✕ Removed from list</span>' : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  html += `<div class="shopping-actions">
+      <button class="btn-secondary whatsapp" id="faralShareBtn">📲 Share Faral List</button>
+      <button class="btn-secondary" id="faralCopyBtn">📋 Copy Faral List</button>
+    </div></div>`;
+  area.innerHTML = html;
+
+  area.querySelectorAll('.shop-check').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) faralHave.add(cb.dataset.item); else faralHave.delete(cb.dataset.item);
+      saveFaral();
+      renderFaralList();
+    });
+  });
+  document.getElementById('faralShareBtn').addEventListener('click', ()=>{
+    window.open('https://wa.me/?text=' + encodeURIComponent(faralListAsText()), '_blank');
+  });
+  document.getElementById('faralCopyBtn').addEventListener('click', ()=>{
+    navigator.clipboard.writeText(faralListAsText()).then(()=> showToast('Faral list copied to clipboard'));
+  });
+}
+
+function faralListAsText(){
+  const grouped = buildFaralList();
+  const cats = faralOrderedCats(grouped);
+  const removedCount = cats.reduce((n,c) => n + grouped[c].filter(x => faralHave.has(x.name)).length, 0);
+  const lines = ['🪔 *Faral Shopping List*', 'For: ' + Array.from(faralSel).join(', ')];
+  if(removedCount > 0) lines.push(`_(${removedCount} item${removedCount>1?'s':''} already at home, left off this list)_`);
+  lines.push('');
+  const early = faralStartEarly();
+  if(early.length){
+    lines.push('⏳ *Start early*');
+    early.forEach(e => lines.push(`• ${e.name}: ${e.text}`));
+    lines.push('');
+  }
+  cats.forEach(cat=>{
+    const items = grouped[cat].filter(x => !faralHave.has(x.name));
+    if(items.length === 0) return;
+    lines.push(`*${cat}*`);
+    items.forEach(x => lines.push(`  ☐ ${x.name}`));
+    lines.push('');
+  });
+  lines.push('Make a little extra and share the joy with family & friends! 💛');
+  return lines.join('\n');
+}
+
+function updateFestToggleLabel(){
+  const showing = document.getElementById('festBody').style.display !== 'none';
+  const n = faralSel.size;
+  document.getElementById('festToggleBtn').textContent = showing ? 'Hide' : (n ? `Explore · ${n} in your list` : 'Explore');
+}
+
+function updateFaralBar(){
+  const n = faralSel.size;
+  document.getElementById('faralCount').textContent = n === 0
+    ? 'No dishes chosen yet — tap "+ Add to my faral list" on any dish below'
+    : `${n} dish${n>1?'es':''} in your faral list`;
+  const viewBtn = document.getElementById('faralViewBtn');
+  viewBtn.disabled = n === 0;
+  document.getElementById('faralClearBtn').style.display = n ? 'inline' : 'none';
+
+  const chips = document.getElementById('faralChips');
+  chips.innerHTML = Array.from(faralSel).map(name =>
+    `<span class="faral-chip">${name}<button data-remove="${name.replace(/"/g,'&quot;')}" aria-label="Remove ${name}">✕</button></span>`).join('');
+  chips.querySelectorAll('[data-remove]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      faralSel.delete(b.dataset.remove);
+      saveFaral();
+      updateFaralBar();
+      renderFestResults();
+    });
+  });
+
+  if(n === 0 && faralListOpen){ faralListOpen = false; document.getElementById('faralListArea').style.display = 'none'; }
+  viewBtn.textContent = faralListOpen ? '▴ Hide shopping list' : '🛒 My faral shopping list';
+  if(faralListOpen) renderFaralList();
+  updateFestToggleLabel();
 }
 
 function openFestKitchen(){
   const body = document.getElementById('festBody');
   if(body.style.display === 'none'){
     body.style.display = 'block';
-    document.getElementById('festToggleBtn').textContent = 'Hide';
+    updateFestToggleLabel();
     renderFestResults();
   }
   document.getElementById('festKitchen').scrollIntoView({behavior:'smooth', block:'start'});
@@ -2207,13 +2431,35 @@ function openFestKitchen(){
     else if(dd === 1) askEl.textContent = 'Diwali is tomorrow — last call for the faral!';
     else askEl.textContent = `Diwali is in ${dd} days — time to plan your faral!`;
   }
+  loadFaral();
+  updateFaralBar();
   document.getElementById('festToggleBtn').addEventListener('click', ()=>{
     const body = document.getElementById('festBody');
-    const btn = document.getElementById('festToggleBtn');
     const showing = body.style.display !== 'none';
     body.style.display = showing ? 'none' : 'block';
-    btn.textContent = showing ? 'Explore' : 'Hide';
+    updateFestToggleLabel();
     if(!showing) renderFestResults();
+  });
+  document.getElementById('faralViewBtn').addEventListener('click', ()=>{
+    if(faralSel.size === 0) return;
+    faralListOpen = !faralListOpen;
+    const area = document.getElementById('faralListArea');
+    if(faralListOpen){
+      renderFaralList();
+      area.style.display = 'block';
+      area.scrollIntoView({behavior:'smooth', block:'start'});
+    } else {
+      area.style.display = 'none';
+    }
+    updateFaralBar();
+  });
+  document.getElementById('faralClearBtn').addEventListener('click', ()=>{
+    faralSel.clear(); faralHave.clear(); saveFaral();
+    faralListOpen = false;
+    document.getElementById('faralListArea').style.display = 'none';
+    updateFaralBar();
+    renderFestResults();
+    showToast('Faral list cleared');
   });
   ['festRegion','festType'].forEach(id=>{
     document.getElementById(id).addEventListener('change', ()=>{ festShown = FEST_PAGE; renderFestResults(); });
