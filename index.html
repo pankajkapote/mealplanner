@@ -122,6 +122,8 @@
   }
   .festive-emoji{ font-size:19px; flex-shrink:0; }
   .festive-text{ flex:1; line-height:1.4; font-weight:600; }
+  .festive-link{ background: var(--turmeric); color:white; border:none; font-family:'Baloo 2'; font-weight:700; font-size:12px; padding:6px 13px; border-radius:999px; cursor:pointer; flex-shrink:0; }
+  .festive-link:hover{ background:#B5741F; }
   .festive-close{ background:none; border:none; color:#6B4A12; opacity:0.7; font-size:15px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
   .festive-close:hover{ opacity:1; }
 
@@ -153,7 +155,7 @@
     to{ transform: translateX(-50%); }
   }
   .food-banner:hover .food-track{ animation-play-state: paused; }
-  @media print{ .food-banner, .header-widgets, .install-banner, .shopping-panel, .bunting, .festive-banner, .cooknow-panel{ display:none; } }
+  @media print{ .food-banner, .header-widgets, .install-banner, .shopping-panel, .bunting, .festive-banner, .cooknow-panel, .festk-panel{ display:none; } }
 
   .cooknow-panel{
     background: var(--card); border: 1.5px solid var(--cardamom); border-radius: var(--radius);
@@ -186,6 +188,43 @@
     padding: 9px 14px; border-radius:10px; cursor:pointer;
   }
   .cooknow-more:hover{ background: var(--turmeric-soft); border-style:solid; }
+
+  .cooknow-ask, .festk-ask{ font-size:12.5px; color: var(--ink-soft); margin:0 0 3px; font-weight:600; }
+  .cooknow-head h2{ margin:0; }
+
+  /* ---------- Festive sweets & savouries ---------- */
+  .festk-panel{
+    background: linear-gradient(180deg, #FFF6E0, #FFFDF8);
+    border: 1.5px solid #E4B94F; border-radius: var(--radius);
+    padding: 18px 22px; margin-bottom: 26px;
+    box-shadow: 0 2px 0 #E4B94F;
+  }
+  .festk-toggle{
+    background: var(--turmeric); color:white; border:none;
+    font-family:'Baloo 2'; font-weight:700; font-size:13px;
+    padding: 8px 16px; border-radius:999px; cursor:pointer;
+  }
+  .festk-toggle:hover{ background:#B5741F; }
+  .festk-note{ font-size:12.5px; color: var(--ink-soft); margin: 14px 0 12px; line-height:1.5; }
+  .festk-filters{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+  .festk-filter{ flex:1 1 170px; }
+  .festk-filter label{ display:block; font-family:'Baloo 2'; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color: var(--chili-deep); margin-bottom:5px; }
+
+  .fest-card{ background: var(--card); border:1px solid #EBD39B; border-radius:10px; padding:13px 15px; margin-bottom:11px; }
+  .fest-card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .fest-card-name{ font-family:'Baloo 2'; font-weight:700; font-size:15.5px; color: var(--ink); margin:0; }
+  .fest-tag{ font-size:10.5px; font-weight:700; padding:2px 9px; border-radius:999px; text-transform:uppercase; letter-spacing:.03em; flex-shrink:0; }
+  .fest-tag.sweet{ background:#FDE0E0; color: var(--chili-deep); }
+  .fest-tag.savoury{ background: var(--cardamom-soft); color:#3E5636; }
+  .fest-region{ font-size:11.5px; color: var(--turmeric); font-weight:700; margin: 2px 0 6px; }
+  .fest-desc{ font-size:13px; color: var(--ink-soft); margin:0 0 6px; line-height:1.45; }
+  .fest-ing{ font-size:12px; color: var(--ink); margin:0 0 6px; }
+  .fest-ing b{ color: var(--chili-deep); }
+  .fest-ahead{ font-size:12px; color:#8A5A18; background:#FBF0DB; border:1px dashed #E4C48C; border-radius:8px; padding:6px 10px; margin:0 0 7px; line-height:1.45; }
+  .fest-tip{ font-size:12px; color: var(--cardamom); margin:0 0 7px; font-weight:600; }
+  .fest-meta{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:11.5px; color: var(--ink-soft); font-weight:700; }
+  .fest-diff.easy{ color:#3E5636; } .fest-diff.medium{ color:#8A5A18; } .fest-diff.hard{ color: var(--chili-deep); }
+  .fest-empty{ text-align:center; color: var(--ink-soft); font-size:13px; padding:16px 10px; }
   .pantry-count{ font-size:12.5px; font-weight:700; color: var(--cardamom); margin-left:auto; }
 
   .pantry-cat{ margin-bottom:14px; }
@@ -415,32 +454,12 @@
   <div id="festiveBanner" class="festive-banner" style="display:none;">
     <span class="festive-emoji">🎊</span>
     <span class="festive-text" id="festiveText"></span>
+    <button class="festive-link" id="festiveLinkBtn" style="display:none;">🪔 See faral recipes</button>
     <button class="festive-close" id="festiveCloseBtn" aria-label="Dismiss">✕</button>
   </div>
 
   <div class="food-banner" aria-hidden="true">
     <div class="food-track" id="foodTrack"></div>
-  </div>
-
-  <div class="cooknow-panel">
-    <div class="cooknow-head">
-      <h2>🍳 What Can I Cook Right Now?</h2>
-      <button class="cooknow-toggle" id="cooknowToggleBtn">Show me</button>
-    </div>
-    <div id="cooknowBody" style="display:none;">
-      <p class="cooknow-privacy">🔒 Tap the fresh items you have in the fridge right now. Spices, flours, rice, dals, oil and other everyday pantry staples are <strong>assumed to be in your kitchen already</strong> — so you only tick the perishables. Nothing is typed unless you want to, no account, no login: this stays only on this device.</p>
-      <div class="cooknow-actions">
-        <button class="btn-secondary" id="pantryStaplesBtn">✓ I have the usual basics</button>
-        <div class="pantry-type-row">
-          <input type="text" id="pantryTypeInput" class="pantry-type-input" placeholder="Type a vegetable, e.g. cabbage, paneer...">
-          <button class="btn-secondary" id="pantryTypeAddBtn">+ Add</button>
-        </div>
-        <button class="btn-secondary" id="pantryClearBtn">✕ Clear all</button>
-        <span class="pantry-count" id="pantryCount">0 items selected</span>
-      </div>
-      <div id="pantryGrid"></div>
-      <div id="cooknowResults"></div>
-    </div>
   </div>
 
   <div class="setup">
@@ -510,6 +529,65 @@
     </div>
     <div class="generate-row">
       <button class="btn-primary" id="generateBtn">Generate the week's plan</button>
+    </div>
+  </div>
+
+  <div class="cooknow-panel">
+    <div class="cooknow-head">
+      <div>
+        <p class="cooknow-ask">Not in the mood for a weekly plan? Need quick help to cook something right away?</p>
+        <h2>🍳 Try: What Can I Cook Right Now?</h2>
+      </div>
+      <button class="cooknow-toggle" id="cooknowToggleBtn">Show me</button>
+    </div>
+    <div id="cooknowBody" style="display:none;">
+      <p class="cooknow-privacy">🔒 Tap the fresh items you have in the fridge right now. Spices, flours, rice, dals, oil and other everyday pantry staples are <strong>assumed to be in your kitchen already</strong> — so you only tick the perishables. Nothing is typed unless you want to, no account, no login: this stays only on this device.</p>
+      <div class="cooknow-actions">
+        <button class="btn-secondary" id="pantryStaplesBtn">✓ I have the usual basics</button>
+        <div class="pantry-type-row">
+          <input type="text" id="pantryTypeInput" class="pantry-type-input" placeholder="Type a vegetable, e.g. cabbage, paneer...">
+          <button class="btn-secondary" id="pantryTypeAddBtn">+ Add</button>
+        </div>
+        <button class="btn-secondary" id="pantryClearBtn">✕ Clear all</button>
+        <span class="pantry-count" id="pantryCount">0 items selected</span>
+      </div>
+      <div id="pantryGrid"></div>
+      <div id="cooknowResults"></div>
+    </div>
+  </div>
+
+  <div class="festk-panel" id="festKitchen">
+    <div class="cooknow-head">
+      <div>
+        <p class="festk-ask" id="festAsk">Planning festive sweets &amp; snacks to make at home and share?</p>
+        <h2 id="festTitle">🪔 Festive Sweets &amp; Savouries</h2>
+      </div>
+      <button class="festk-toggle" id="festToggleBtn">Explore</button>
+    </div>
+    <div id="festBody" style="display:none;">
+      <p class="festk-note">Faral is best made ahead — most of these keep for weeks in airtight tins. They are ordered like a prep timeline: dishes that need lead time first, quick-spoiling sweets last. Make a little extra and share it with family, friends and neighbours. 💛</p>
+      <div class="festk-filters">
+        <div class="festk-filter">
+          <label for="festRegion">Region</label>
+          <select id="festRegion">
+            <option value="all">All regions</option>
+            <option value="maharashtra">Maharashtra</option>
+            <option value="gujarat">Gujarat</option>
+            <option value="north">North India</option>
+            <option value="south">South India</option>
+            <option value="east">East India</option>
+          </select>
+        </div>
+        <div class="festk-filter">
+          <label for="festType">Type</label>
+          <select id="festType">
+            <option value="all">Sweets &amp; savouries</option>
+            <option value="sweet">Sweets only</option>
+            <option value="savoury">Savouries only</option>
+          </select>
+        </div>
+      </div>
+      <div id="festResults"></div>
     </div>
   </div>
 
@@ -1639,7 +1717,7 @@ function render(){
   });
 }
 
-function generatePlan(){
+function generatePlan(scrollToPlan){
   activeMeals = Array.from(document.querySelectorAll('.meal-check:checked')).map(c=>c.value);
   if(activeMeals.length === 0){ alert('Pick at least one meal to plan.'); return; }
   buildDates();
@@ -1653,6 +1731,7 @@ function generatePlan(){
   document.getElementById('shoppingArea').style.display = 'none';
   document.getElementById('shoppingToggleBtn').textContent = '🛒 Show Shopping List';
   render();
+  if(scrollToPlan === true) document.getElementById('planArea').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 /* ---------------- Toast ---------------- */
@@ -1742,7 +1821,7 @@ document.getElementById('shoppingToggleBtn').addEventListener('click', ()=>{
 });
 
 /* ---------------- Controls ---------------- */
-document.getElementById('generateBtn').addEventListener('click', generatePlan);
+document.getElementById('generateBtn').addEventListener('click', ()=> generatePlan(true));
 document.querySelectorAll('input[name="pattern"]').forEach(el=>{
   el.addEventListener('change', ()=>{
     if(Object.keys(currentPlan).length) render();
@@ -1804,6 +1883,11 @@ const FOOD_ITEMS = ["🍛 Dal Chawal","🫓 Roti","🥘 Sambar","🍚 Pulao","�
   const when = festivalCountdownLabel(fest.diffDays);
   textEl.textContent = `${cleanName} is ${when}! Try ${fest.dish.name} this week and share the joy with family & friends. 💛`;
   banner.style.display = 'flex';
+  if(fest.festivalName === 'Diwali'){
+    const linkBtn = document.getElementById('festiveLinkBtn');
+    linkBtn.style.display = 'inline-block';
+    linkBtn.addEventListener('click', openFestKitchen);
+  }
 
   document.getElementById('festiveCloseBtn').addEventListener('click', ()=>{
     banner.style.display = 'none';
@@ -1856,6 +1940,286 @@ const FOOD_ITEMS = ["🍛 Dal Chawal","🫓 Roti","🥘 Sambar","🍚 Pulao","�
     if(e.key === 'Enter'){ e.preventDefault(); submitTypedInput(); }
   });
 })();
+
+/* ---------------- Festive sweets & savouries (faral) ----------------
+   Make-at-home festival delicacies from different regions of India.
+   keepDays drives the "prep timeline" ordering (long-keepers first, fresh
+   sweets last). ahead/leadDays flag dishes that need advance preparation. */
+const FESTIVE_ITEMS = [
+  // ----- Maharashtra -----
+  {name:"Besan Ladoo", region:"maharashtra", type:"sweet", diff:"Easy", prepTime:40, keeps:"2–3 weeks", keepDays:18,
+   desc:"Gram flour slow-roasted in ghee until nutty, then bound with powdered sugar — the easiest, most forgiving sweet on the faral plate.",
+   ing:["Besan (gram flour)","Ghee","Powdered sugar","Cardamom"],
+   tip:"Roast on low heat and keep stirring — the aroma tells you when it's done."},
+  {name:"Rava Ladoo", region:"maharashtra", type:"sweet", diff:"Easy", prepTime:40, keeps:"about 2 weeks", keepDays:14,
+   desc:"Roasted semolina and dry coconut bound with sugar syrup or warm milk — soft, crumbly and a family favourite.",
+   ing:["Rava (semolina)","Ghee","Sugar","Dry coconut","Cardamom","Raisins"],
+   tip:"Take the syrup to one-string consistency so the ladoos hold their shape."},
+  {name:"Chakli (Bhajani)", region:"maharashtra", type:"savoury", diff:"Needs practice", prepTime:60, keeps:"3–4 weeks", keepDays:25,
+   desc:"Crunchy spiral snack made from roasted multigrain flour, pressed through a chakli press and deep-fried.",
+   ing:["Bhajani (roasted multigrain flour)","Sesame","Cumin","Chilli powder","Oil"],
+   tip:"Needs a chakli press (sorya). Keep the dough soft but not sticky and fry on medium heat."},
+  {name:"Pohe Chivda", region:"maharashtra", type:"savoury", diff:"Easy", prepTime:30, keeps:"3–4 weeks", keepDays:25,
+   desc:"Light, crunchy poha mixture with peanuts, roasted chana, curry leaves and coconut slivers — the heart of the faral plate.",
+   ing:["Thin poha","Peanuts","Roasted chana (daliya)","Curry leaves","Dry coconut slices","Sugar"],
+   tip:"Use thin (patla) poha and let the mixture cool completely before storing it airtight."},
+  {name:"Shankarpale", region:"maharashtra", type:"sweet", diff:"Medium", prepTime:50, keeps:"about 3 weeks", keepDays:21,
+   desc:"Crisp, diamond-shaped, lightly sweet biscuits — buttery and made to be munched by the handful.",
+   ing:["Maida / wheat flour","Ghee","Sugar","Milk"],
+   tip:"Roll the dough to an even thickness and fry on low heat for a uniform golden colour."},
+  {name:"Anarsa", region:"maharashtra", type:"sweet", diff:"Needs practice", prepTime:45, keeps:"about 2 weeks", keepDays:14,
+   desc:"A traditional rice-and-jaggery sweet, coated in poppy seeds — lacy and crisp outside, soft inside.",
+   ing:["Rice","Jaggery","Poppy seeds (khus khus)","Ghee / oil"],
+   ahead:"Needs roughly a week of lead time: soak the rice for 3 days (changing the water daily), dry and grind it, then rest the jaggery dough for 3–4 days before frying.",
+   leadDays:8},
+  {name:"Besan Shev (Namkin Shev)", region:"maharashtra", type:"savoury", diff:"Medium", prepTime:40, keeps:"3–4 weeks", keepDays:25,
+   desc:"Crunchy gram-flour vermicelli pressed through a sev maker and fried — eaten on its own and tossed into chivda and bhel.",
+   ing:["Besan","Ajwain","Turmeric","Chilli powder","Oil"],
+   tip:"Keep the dough soft; hot oil at the right temperature gives thin, crisp strands."},
+  {name:"Karanji", region:"maharashtra", type:"sweet", diff:"Medium", prepTime:60, keeps:"about 2 weeks", keepDays:14,
+   desc:"Crisp half-moon pastries filled with sweet dry coconut and cardamom.",
+   ing:["Maida","Dry coconut","Sugar / jaggery","Cardamom","Poppy seeds","Ghee"],
+   tip:"Seal the edges tightly (a karanji cutter helps) so the filling doesn't leak while frying."},
+  {name:"Chirote", region:"maharashtra", type:"sweet", diff:"Needs practice", prepTime:60, keeps:"about 1 week (delicate)", keepDays:7,
+   desc:"Delicate, layered, flaky pastry fried crisp and dusted with powdered sugar.",
+   ing:["Maida","Ghee","Rice flour","Powdered sugar"],
+   tip:"The layers come from rolling the dough with a ghee-and-rice-flour paste — keep them thin and even."},
+  {name:"Kadboli", region:"maharashtra", type:"savoury", diff:"Medium", prepTime:60, keeps:"3–4 weeks", keepDays:25,
+   desc:"Crunchy ring-shaped savoury snack made from a mix of grain flours and spices, fried until crisp.",
+   ing:["Mixed grain flours","Sesame","Cumin","Chilli powder","Oil"],
+   tip:"Fry on medium-low heat so the rings turn crisp all the way through."},
+
+  // ----- Gujarat -----
+  {name:"Mohanthal", region:"gujarat", type:"sweet", diff:"Medium", prepTime:50, keeps:"2–3 weeks", keepDays:18,
+   desc:"Rich gram-flour fudge set in a tray and cut into squares — a Gujarati Diwali and New Year staple.",
+   ing:["Coarse besan","Ghee","Sugar","Milk","Cardamom","Nuts"],
+   tip:"Rub a little milk and ghee into the besan first for the signature grainy texture."},
+  {name:"Gathiya", region:"gujarat", type:"savoury", diff:"Medium", prepTime:40, keeps:"2–3 weeks", keepDays:18,
+   desc:"Soft-crunchy gram-flour strips seasoned with ajwain and pepper — usually served with fried chillies and chutney.",
+   ing:["Besan","Ajwain","Black pepper","Papad khar (or a pinch of baking soda)","Oil"],
+   tip:"Knead the dough well — it is what gives gathiya its soft crunch."},
+  {name:"Chorafali", region:"gujarat", type:"savoury", diff:"Medium", prepTime:45, keeps:"about 3 weeks", keepDays:21,
+   desc:"Paper-thin, crisp Gujarati Diwali snack, traditionally served with chutney and fried green chillies.",
+   ing:["Urad dal flour","Besan","Papad khar","Salt","Oil"],
+   tip:"Roll the dough very thin and fry quickly on medium heat."},
+  {name:"Ghughra", region:"gujarat", type:"sweet", diff:"Medium", prepTime:60, keeps:"about 2 weeks", keepDays:14,
+   desc:"Half-moon fried pastry stuffed with khoya and dry fruits — Gujarat's cousin of Karanji and Gujiya.",
+   ing:["Maida","Khoya (mawa)","Dry fruits","Sugar","Cardamom","Ghee / oil"],
+   tip:"Roast the khoya filling and let it cool fully before filling, or the pastry turns soggy."},
+
+  // ----- North India -----
+  {name:"Kaju Katli", region:"north", type:"sweet", diff:"Medium", prepTime:45, keeps:"about 2 weeks", keepDays:14,
+   desc:"Smooth cashew fudge rolled thin and cut into diamonds — the classic Diwali gifting sweet.",
+   ing:["Cashews","Sugar","Ghee","Cardamom"],
+   tip:"Grind the cashews in short bursts so they don't turn oily."},
+  {name:"Balushahi", region:"north", type:"sweet", diff:"Needs practice", prepTime:60, keeps:"1–2 weeks", keepDays:10,
+   desc:"Flaky, doughnut-like sweet fried low and slow, then dunked in sugar syrup.",
+   ing:["Maida","Ghee","Curd","Sugar","Cardamom"],
+   tip:"Fry on low heat so the inside cooks through before the outside darkens."},
+  {name:"Soan Papdi", region:"north", type:"sweet", diff:"Needs practice", prepTime:75, keeps:"3–4 weeks", keepDays:25,
+   desc:"Flaky, thread-like sweet that melts in the mouth — a festive gifting favourite.",
+   ing:["Besan","Maida","Ghee","Sugar","Cardamom"],
+   tip:"Pulling the hot sugar syrup into threads is the tricky part — keep everything ready before you start."},
+  {name:"Mathri", region:"north", type:"savoury", diff:"Easy", prepTime:45, keeps:"3–4 weeks", keepDays:25,
+   desc:"Flaky, crisp savoury discs seasoned with ajwain and pepper — perfect with tea.",
+   ing:["Maida","Ajwain","Ghee / oil","Black pepper"],
+   tip:"Fry slowly on low heat; they crisp up further as they cool."},
+  {name:"Namak Pare", region:"north", type:"savoury", diff:"Easy", prepTime:35, keeps:"3–4 weeks", keepDays:25,
+   desc:"Crispy diamond-shaped savoury snack — the salty counterpart to shankarpale.",
+   ing:["Maida","Ajwain","Oil","Salt"],
+   tip:"A little ghee in the dough keeps them short and crisp."},
+  {name:"Gulab Jamun", region:"north", type:"sweet", diff:"Medium", prepTime:50, keeps:"3–4 days (refrigerate)", keepDays:4,
+   desc:"Soft milk-solid dumplings soaked in cardamom-scented syrup.",
+   ing:["Khoya / milk powder","Sugar","Cardamom","Ghee / oil"],
+   tip:"Fry on low heat and keep the syrup warm, not boiling, when the jamuns go in."},
+
+  // ----- South India -----
+  {name:"Murukku", region:"south", type:"savoury", diff:"Medium", prepTime:60, keeps:"about 3 weeks", keepDays:21,
+   desc:"Spiral snack from rice and urad dal flours — Tamil Nadu's answer to the chakli.",
+   ing:["Rice flour","Urad dal flour","Butter","Cumin / sesame","Oil"],
+   tip:"Press straight into hot oil and drain well; let them cool before storing."},
+  {name:"Adhirasam", region:"south", type:"sweet", diff:"Needs practice", prepTime:60, keeps:"about 2 weeks", keepDays:14,
+   desc:"Deep-fried rice-and-jaggery disc — a Tamil Deepavali tradition.",
+   ing:["Rice flour","Jaggery","Cardamom","Sesame / dry ginger","Ghee / oil"],
+   ahead:"Rest the jaggery dough overnight (up to 2 days) for the right texture.",
+   leadDays:2},
+  {name:"Mysore Pak", region:"south", type:"sweet", diff:"Needs practice", prepTime:45, keeps:"about 2 weeks", keepDays:14,
+   desc:"Rich, melt-in-the-mouth gram-flour and ghee sweet from Karnataka.",
+   ing:["Besan","Ghee","Sugar"],
+   tip:"Add hot ghee gradually and keep stirring — the mixture should froth."},
+  {name:"Ariselu", region:"south", type:"sweet", diff:"Needs practice", prepTime:60, keeps:"about 2 weeks", keepDays:14,
+   desc:"Andhra rice-and-jaggery discs studded with sesame, made for Diwali and Sankranti.",
+   ing:["Rice","Jaggery","Sesame seeds","Ghee / oil"],
+   ahead:"Soak and shade-dry the rice, then grind it into flour a day ahead.",
+   leadDays:1},
+  {name:"Rava Kesari", region:"south", type:"sweet", diff:"Easy", prepTime:20, keeps:"best fresh (same day)", keepDays:1,
+   desc:"Quick, golden semolina sweet with ghee, saffron and cashews — the easy festival-day sweet.",
+   ing:["Rava (semolina)","Ghee","Sugar","Saffron","Cashews"],
+   tip:"Roast the rava well in ghee first and add boiling water slowly."},
+
+  // ----- East India -----
+  {name:"Sandesh", region:"east", type:"sweet", diff:"Medium", prepTime:30, keeps:"2–3 days (refrigerate)", keepDays:3,
+   desc:"Soft Bengali sweet made from fresh chenna — subtle, milky and quick to make.",
+   ing:["Chenna (fresh paneer)","Sugar","Cardamom"],
+   tip:"Knead the chenna until smooth, and cook it only briefly with the sugar."},
+  {name:"Rasgulla", region:"east", type:"sweet", diff:"Needs practice", prepTime:45, keeps:"about 1 week (refrigerated)", keepDays:7,
+   desc:"Spongy chenna balls simmered in light sugar syrup.",
+   ing:["Chenna","Sugar","Cardamom","Rose water"],
+   tip:"Knead the chenna smooth and cook the balls in plenty of syrup so they puff up."},
+  {name:"Narkel Naru", region:"east", type:"sweet", diff:"Easy", prepTime:30, keeps:"about 1 week", keepDays:7,
+   desc:"Bengali coconut ladoos, soft and chewy, made for Lakshmi Puja and festivals.",
+   ing:["Coconut","Jaggery / sugar","Cardamom"],
+   tip:"Cook the coconut with jaggery just until it comes together — it firms up as it cools."},
+  {name:"Nimki", region:"east", type:"savoury", diff:"Easy", prepTime:35, keeps:"about 3 weeks", keepDays:21,
+   desc:"Crisp Bengali diamonds flavoured with kalonji — a festive tea-time snack.",
+   ing:["Maida","Kalonji (nigella seeds)","Oil","Salt"],
+   tip:"Fry on medium-low heat so they turn crisp and evenly golden."},
+  {name:"Thekua", region:"east", type:"sweet", diff:"Medium", prepTime:45, keeps:"2–3 weeks", keepDays:18,
+   desc:"Crunchy, jaggery-sweet cookie from Bihar, the signature Chhath Puja prasad.",
+   ing:["Wheat flour","Jaggery","Ghee","Coconut","Fennel (saunf)"],
+   tip:"Use a firm dough and fry on low heat so it stays crunchy for weeks."},
+];
+
+const FEST_REGION_LABEL = { maharashtra:"Maharashtra", gujarat:"Gujarat", north:"North India", south:"South India", east:"East India" };
+const FEST_PAGE = 5;
+let festShown = FEST_PAGE;
+
+function daysUntilEvent(keyword){
+  const today = new Date(); today.setHours(0,0,0,0);
+  let best = null;
+  Object.keys(EVENTS).forEach(dateStr=>{
+    if(!EVENTS[dateStr].includes(keyword)) return;
+    const diff = Math.round((new Date(dateStr + 'T00:00:00') - today) / 86400000);
+    if(diff >= 0 && (best === null || diff < best)) best = diff;
+  });
+  return best;
+}
+// Only count Diwali if it is actually close, so "start by" dates stay meaningful
+function daysToDiwaliNear(){
+  const d = daysUntilEvent('Diwali');
+  return (d !== null && d <= 45) ? d : null;
+}
+
+// Timeline order: lead-time dishes first, then long-keepers, quick-spoiling sweets last
+function festSorted(list){
+  return list.slice().sort((a,b)=>{
+    const aa = a.ahead ? 1 : 0, bb = b.ahead ? 1 : 0;
+    if(aa !== bb) return bb - aa;
+    if(a.keepDays !== b.keepDays) return b.keepDays - a.keepDays;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+function festLeadMessage(item, daysToDiwali){
+  if(!item.ahead) return '';
+  let extra = '';
+  if(daysToDiwali !== null && item.leadDays){
+    const slack = daysToDiwali - item.leadDays;
+    if(slack > 0){
+      const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() + slack);
+      extra = ` To have it ready for Diwali, start by ${d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})}.`;
+    } else if(slack === 0){
+      extra = ' To have it ready for Diwali, start today.';
+    } else if(daysToDiwali === 0){
+      extra = ` It's Diwali today and this needs about ${item.leadDays} days — start now to enjoy it after the festival, or save it for next year.`;
+    } else {
+      extra = ` Diwali is ${daysToDiwali} day${daysToDiwali===1?'':'s'} away and this needs about ${item.leadDays}, so it won't be ready in time — start now to enjoy it after the festival, or save it for next Diwali.`;
+    }
+  }
+  return item.ahead + extra;
+}
+
+function festCard(item, daysToDiwali){
+  const link = recipeLink(item.name);
+  const diffClass = item.diff === 'Easy' ? 'easy' : (item.diff === 'Medium' ? 'medium' : 'hard');
+  const lead = festLeadMessage(item, daysToDiwali);
+  return `<div class="fest-card">
+    <div class="fest-card-top">
+      <p class="fest-card-name">${item.name}</p>
+      <span class="fest-tag ${item.type}">${item.type === 'sweet' ? 'Sweet' : 'Savoury'}</span>
+    </div>
+    <p class="fest-region">📍 ${FEST_REGION_LABEL[item.region]}</p>
+    <p class="fest-desc">${item.desc}</p>
+    <p class="fest-ing"><b>Key ingredients:</b> ${item.ing.join(', ')}</p>
+    ${lead ? `<p class="fest-ahead">⏳ <b>Start early:</b> ${lead}</p>` : ''}
+    ${item.tip ? `<p class="fest-tip">💡 ${item.tip}</p>` : ''}
+    <div class="fest-meta">
+      <span>⏱ ~${item.prepTime} min hands-on</span>
+      <span>🫙 Keeps: ${item.keeps}</span>
+      <span class="fest-diff ${diffClass}">👩‍🍳 ${item.diff}</span>
+      <a class="recipe-link" href="${link}" target="_blank" rel="noopener">🔗 View recipe</a>
+      <button class="copy-link-btn" data-link="${link}">📎 copy link</button>
+    </div>
+  </div>`;
+}
+
+function renderFestResults(){
+  const area = document.getElementById('festResults');
+  const region = document.getElementById('festRegion').value;
+  const type = document.getElementById('festType').value;
+  let list = FESTIVE_ITEMS.filter(i => (region === 'all' || i.region === region) && (type === 'all' || i.type === type));
+  list = festSorted(list);
+  if(list.length === 0){
+    area.innerHTML = `<div class="fest-empty">Nothing matches that combination — try another region or type. 🪔</div>`;
+    return;
+  }
+  const dd = daysToDiwaliNear();
+  const shown = Math.min(festShown, list.length);
+  let html = `<p class="cooknow-section-title">Showing ${shown} of ${list.length}</p>`;
+  list.slice(0, shown).forEach(i => html += festCard(i, dd));
+  if(list.length > shown){
+    html += `<button class="cooknow-more" data-fest="more">Show ${Math.min(FEST_PAGE, list.length - shown)} more options ▾</button>`;
+  } else if(list.length > FEST_PAGE){
+    html += `<button class="cooknow-more" data-fest="less">Show fewer ▴</button>`;
+  }
+  area.innerHTML = html;
+
+  area.querySelectorAll('[data-fest]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(btn.dataset.fest === 'more') festShown += FEST_PAGE; else festShown = FEST_PAGE;
+      renderFestResults();
+    });
+  });
+  area.querySelectorAll('.copy-link-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      navigator.clipboard.writeText(btn.dataset.link).then(()=> showToast('Recipe link copied'));
+    });
+  });
+}
+
+function openFestKitchen(){
+  const body = document.getElementById('festBody');
+  if(body.style.display === 'none'){
+    body.style.display = 'block';
+    document.getElementById('festToggleBtn').textContent = 'Hide';
+    renderFestResults();
+  }
+  document.getElementById('festKitchen').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+(function festKitchenInit(){
+  const dd = daysUntilEvent('Diwali');
+  const askEl = document.getElementById('festAsk');
+  const titleEl = document.getElementById('festTitle');
+  if(dd !== null && dd <= 30){
+    titleEl.textContent = '🪔 Diwali Faral & Festive Delicacies';
+    if(dd === 0) askEl.textContent = 'Happy Diwali! Time to share the faral with everyone you love.';
+    else if(dd === 1) askEl.textContent = 'Diwali is tomorrow — last call for the faral!';
+    else askEl.textContent = `Diwali is in ${dd} days — time to plan your faral!`;
+  }
+  document.getElementById('festToggleBtn').addEventListener('click', ()=>{
+    const body = document.getElementById('festBody');
+    const btn = document.getElementById('festToggleBtn');
+    const showing = body.style.display !== 'none';
+    body.style.display = showing ? 'none' : 'block';
+    btn.textContent = showing ? 'Explore' : 'Hide';
+    if(!showing) renderFestResults();
+  });
+  ['festRegion','festType'].forEach(id=>{
+    document.getElementById(id).addEventListener('change', ()=>{ festShown = FEST_PAGE; renderFestResults(); });
+  });
+})();
+
 
 /* ---------------- Visitor count & like button ----------------
    Backed by /api/visit and /api/like (Vercel serverless functions + Upstash Redis).
